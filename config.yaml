@@ -25,10 +25,10 @@ menu:
       pre: <i class="sidebar-button-icon fa fa-lg fa-github"></i>
       url: https://github.com/Larryzza
       weight: 1
-    - identifier: stackoverflow
-      name: Stack Overflow
+    - identifier: Google scholar
+      name: Google scholar
       pre: <i class="sidebar-button-icon fa fa-lg fa-stack-overflow"></i>
-      url: https://stackoverflow.com/users/636472/kakawait
+      url: https://scholar.google.com/citations?user=7U69CCYAAAAJ&hl=en&oi=ao
       weight: 2
   main:
     - identifier: about
@@ -56,22 +56,12 @@ menu:
       pre: <i class="sidebar-button-icon fa fa-lg fa-bolt"></i>
       url: /#about
       weight: 5
-  misc:
-    - identifier: rss
-      name: RSS
-      pre: <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-      url: /index.xml
-      weight: 1
+
 params:
   autoThumbnailImage: yes
   clearReading: yes
   coverImage: images/cover2.jpg
   description: Hugo tranquilpeak theme demo (reversed by Zian)
-  header:
-    rightLink:
-      class: open-algolia-search
-      icon: search
-      url: /#search
   hierarchicalCategories: yes
   imageGallery: yes
   sharingOptions:

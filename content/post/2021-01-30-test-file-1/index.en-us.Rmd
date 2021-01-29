@@ -1,0 +1,15 @@
+---
+title: 'test file 1 '
+author: zian
+date: '2021-01-30'
+slug: index.en-us
+categories:
+  - R
+tags:
+  - test
+keywords:
+  - tech
+---
+
+<!--more-->
+test 1

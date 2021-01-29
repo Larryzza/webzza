@@ -1,0 +1,90 @@
+baseURL: https://example.org/
+languageCode: en-us
+defaultContentLanguage: en-us
+title: 
+theme: hugo-tranquilpeak-theme
+disqusShortname: hugo-tranquilpeak-theme
+paginate: 7
+canonifyurls: yes
+permalinks:
+  post: /:year/:month/:slug/
+taxonomies:
+  archive: archives
+  category: categories
+  tag: tags
+author:
+  bio: Biostat & Biomath
+  gravatarEmail: larry.zhuangzian@gmail.com
+  job: UCLA public health
+  location: LA
+  name: Zian ZHUANG
+menu:
+  links:
+    - identifier: github
+      name: GitHub
+      pre: <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      url: https://github.com/Larryzza
+      weight: 1
+    - identifier: stackoverflow
+      name: Stack Overflow
+      pre: <i class="sidebar-button-icon fa fa-lg fa-stack-overflow"></i>
+      url: https://stackoverflow.com/users/636472/kakawait
+      weight: 2
+  main:
+    - identifier: about
+      name: about
+      pre: <i class="sidebar-button-icon fa fa-lg fa-address-card"></i>
+      url: /
+      weight: 1
+    - identifier: publication
+      name: publication
+      pre: <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      url: /categories
+      weight: 2
+    - identifier: research
+      name: research
+      pre: <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      url: /tags
+      weight: 3
+    - identifier: blog
+      name: blog
+      pre: <i class="sidebar-button-icon fa fa-lg fa-paper-plane"></i>
+      url: /archives
+      weight: 4
+    - identifier: software
+      name: software
+      pre: <i class="sidebar-button-icon fa fa-lg fa-bolt"></i>
+      url: /#about
+      weight: 5
+  misc:
+    - identifier: rss
+      name: RSS
+      pre: <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      url: /index.xml
+      weight: 1
+params:
+  autoThumbnailImage: yes
+  clearReading: yes
+  coverImage: images/cover2.jpg
+  description: Hugo tranquilpeak theme demo (reversed by Zian)
+  header:
+    rightLink:
+      class: open-algolia-search
+      icon: search
+      url: /#search
+  hierarchicalCategories: yes
+  imageGallery: yes
+  sharingOptions:
+    - icon: fa-facebook-official
+      name: Facebook
+      url: https://www.facebook.com/sharer/sharer.php?u=%s
+    - icon: fa-twitter
+      name: Twitter
+      url: https://twitter.com/intent/tweet?text=%s
+    - icon: fa-google-plus
+      name: Google+
+      url: https://plus.google.com/share?url=%s
+  sidebarBehavior: 1
+  syntaxHighlighter: highlight.js
+  thumbnailImage: yes
+  thumbnailImagePosition: bottom

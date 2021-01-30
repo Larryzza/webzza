@@ -1,0 +1,15 @@
+---
+title: "Hello world"
+author: "zian zhuang"
+categories: ["test","R_test"]
+tags: ["test file"]
+keywords:
+  - tech
+comments: no
+showMeta: no
+showActions: no
+---
+
+This is only a test file for R markdown!
+
+

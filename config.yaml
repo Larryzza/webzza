@@ -20,42 +20,58 @@ author:
   name: Zian ZHUANG
 menu:
   links:
-    - identifier: github
+    - identifier: Github
       name: GitHub
       pre: <i class="sidebar-button-icon fa fa-lg fa-github"></i>
       url: https://github.com/Larryzza
       weight: 1
     - identifier: Google scholar
       name: Google scholar
-      pre: <i class="sidebar-button-icon fa fa-lg fa-stack-overflow"></i>
+      pre: <i class="sidebar-button-icon fa fa-lg fa-graduation-cap"></i>
       url: https://scholar.google.com/citations?user=7U69CCYAAAAJ&hl=en&oi=ao
       weight: 2
+    - identifier: instagram
+      name: instagram
+      pre: <i class="sidebar-button-icon fa fa-lg fa-instagram"></i>
+      url: https://www.instagram.com/larry_zza/
+      weight: 3
+    - identifier: twitter
+      name: twitter
+      pre: <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+      url: https://twitter.com/ZhuangZian
+      weight: 4
+      
   main:
-    - identifier: about
-      name: about
-      pre: <i class="sidebar-button-icon fa fa-lg fa-address-card"></i>
+    - identifier: Home
+      name: Home
+      pre: <i class="sidebar-button-icon fa fa-lg fa-home"></i>
       url: /
       weight: 1
-    - identifier: publication
-      name: publication
-      pre: <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-      url: /categories
+    - identifier: About
+      name: About
+      pre: <i class="sidebar-button-icon fa fa-lg fa-address-card"></i>
+      url: /about/
       weight: 2
-    - identifier: research
-      name: research
-      pre: <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
-      url: /tags
+    - identifier: Publication
+      name: Publication
+      pre: <i class="sidebar-button-icon fa fa-lg fa-leanpub"></i>
+      url: /publication/
       weight: 3
-    - identifier: blog
-      name: blog
-      pre: <i class="sidebar-button-icon fa fa-lg fa-paper-plane"></i>
-      url: /archives
+    - identifier: Research
+      name: Research
+      pre: <i class="sidebar-button-icon fa fa-lg fa-flask"></i>
+      url: /research
       weight: 4
-    - identifier: software
-      name: software
-      pre: <i class="sidebar-button-icon fa fa-lg fa-bolt"></i>
-      url: /#about
+    - identifier: Blog
+      name: Blog
+      pre: <i class="sidebar-button-icon fa fa-lg fa-paper-plane"></i>
+      url: /categories
       weight: 5
+    - identifier: Contact
+      name: Contact
+      pre: <i class="sidebar-button-icon fa fa-lg fa-at"></i>
+      url: /contact/
+      weight: 6
 
 params:
   autoThumbnailImage: yes
@@ -64,16 +80,6 @@ params:
   description: Hugo tranquilpeak theme demo (reversed by Zian)
   hierarchicalCategories: yes
   imageGallery: yes
-  sharingOptions:
-    - icon: fa-facebook-official
-      name: Facebook
-      url: https://www.facebook.com/sharer/sharer.php?u=%s
-    - icon: fa-twitter
-      name: Twitter
-      url: https://twitter.com/intent/tweet?text=%s
-    - icon: fa-google-plus
-      name: Google+
-      url: https://plus.google.com/share?url=%s
   sidebarBehavior: 1
   syntaxHighlighter: highlight.js
   thumbnailImage: yes

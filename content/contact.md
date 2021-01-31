@@ -2,12 +2,14 @@
 date: "2020-01-01"
 description: A description of the page
 menu: main
-title: Contact
+title: Contact information
 comments: no
 showMeta: no
-showActions: no
+#showActions: no
 ---
+Department of Biostatistics,\
+UCLA School of Public Health,\
+Los Angeles, CA 90095-1772
 
-email_1: zianzhuang@ucla.edu
-
-email_2: larry.zhuangzian@gmail.com
+Email_1: zianzhuang@ucla.edu\
+Email_2: larry.zhuangzian@gmail.com

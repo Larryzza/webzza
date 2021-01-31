@@ -26,6 +26,10 @@
   <head>
     {{ partial "head_start.html" . }}
     {{ partial "meta.html" . }}
+    
+    <!--zza add-->
+    <link rel="shortcut icon" href="images/icon.jpg" />
+    
     <title>{{ with .Title }}{{ . }}{{ else }}{{ .Site.Title }}{{ end }}</title>
 
     <link rel="icon" href="{{ with .Site.Params.favicon }}{{ . }}{{ else }}/favicon.png{{ end }}">

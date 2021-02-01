@@ -5,7 +5,7 @@ menu: main
 title: Selected publications
 comments: no
 showMeta: no
-#showActions: no
+showActions: no
 ---
 
 1. **Zhuang Z**, Cao P, Zhao S, Han L, He D, Yang L. The shortage of hospital beds for COVID-19 and nonCOVID-19 patients during the lockdown of Wuhan, China. *Ann Transl Med* 2020. doi: 10.21037/atm-20-5248

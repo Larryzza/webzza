@@ -24,16 +24,16 @@ showActions: no
 
 4. Ran J, Song Y, **Zhuang Z**, Han L, Zhao S, Cao P, et al. Blood pressure control and adverse outcomes of COVID-19 infection in patients with concomitant hypertension in Wuhan, China. *Hypertension Research*. 2020;43(11):1267-76.
 
-9. Ran J, Zhao S, **Zhuang Z**, Chong MK, Cai Y, Cao P, Wang K, Lou Y, Wang W, Gao D, Yang L. Quantifying the improvement in confirmation efficiency of the severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2) during the early phase of the outbreak in Hong Kong in 2020. *International Journal of Infectious Diseases*. 2020 Jul 1;96:284-7.
+9. Ran J, Zhao S, **Zhuang Z**, Chong MKC, Cai Y, Cao P, et al. Quantifying the improvement in confirmation efficiency of the severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2) during the early phase of the outbreak in Hong Kong in 2020. *International Journal of Infectious Diseases*. 2020;96:284-7.
 
-10. Liu K, He M, **Zhuang Z**, He D, Li H. Unexpected positive correlation between human development index and risk of infections and deaths of COVID-19 in Italy. *One Health*. 2020 Dec 1;10:100174.
+10. Liu K, He M, **Zhuang Z**, He D, Li H. Unexpected positive correlation between human development index and risk of infections and deaths of COVID-19 in Italy. *One Health*. 2020;10:100174.
 
-3. Ge J, He D, Lin Z, Zhu H, **Zhuang Z**. Four-tier response system and spatial propagation of COVID-19 in China by a network model. *Mathematical Biosciences*. 2020 Dec 1;330:108484.
+5. Zhao S, Cao P, Gao D, **Zhuang Z**, Cai Y, Ran J, et al. Serial interval in determining the estimation of reproduction number of the novel coronavirus disease (COVID-19) during the early outbreak. *Journal of travel medicine*. 2020;27(3):taaa033.
 
-5. Zhao S, Cao P, Gao D, **Zhuang Z**, Cai Y, Ran J, Chong MK, Wang K, Lou Y, Wang W, Yang L. Serial interval in determining the estimation of reproduction number of the novel coronavirus disease (COVID-19) during the early outbreak. *Journal of travel medicine*. 2020 Apr;27(3):taaa033.
+6. He D, Zhao S, Lin Q, **Zhuang Z**, Cao P, Wang MH, et al. The relative transmissibility of asymptomatic COVID-19 infections among close contacts. *International Journal of Infectious Diseases*. 2020;94:145-7.
 
-6. He D, Zhao S, Lin Q, **Zhuang Z**, Cao P, Wang MH, Yang L. The relative transmissibility of asymptomatic COVID-19 infections among close contacts. *International Journal of Infectious Diseases*. 2020 May 1;94:145-7.
+3. Ge J, He D, Lin Z, Zhu H, **Zhuang Z**. Four-tier response system and spatial propagation of COVID-19 in China by a network model. *Mathematical Biosciences*. 2020;330:108484.
 
-8. Yang S, Cao P, Du P, Wu Z, **Zhuang Z**, Yang L, Yu X, Zhou Q, Feng X, Wang X, Li W. Early estimation of the case fatality rate of COVID-19 in mainland China: a data-driven analysis. *Annals of translational medicine*. 2020 Feb;8(4).
+8. Yang S, Cao P, Du P, Wu Z, **Zhuang Z**, Yang L, et al. Early estimation of the case fatality rate of COVID-19 in mainland China: a data-driven analysis. *Annals of Translational Medicine*. 2020;8(4).
 
-11. He D, Zhao S, Xu X, Lin Q, **Zhuang Z**, Cao P, Wang MH, Lou Y, Xiao L, Wu Y, Yang L. Low dispersion in the infectiousness of COVID-19 cases implies difficulty in control. *BMC Public Health*. 2020 Dec;20(1):1-4.
+11. He D, Zhao S, Xu X, Lin Q, **Zhuang Z**, Cao P, et al. Low dispersion in the infectiousness of COVID-19 cases implies difficulty in control. *BMC Public Health*. 2020;20(1):1-4.

@@ -8,7 +8,7 @@ showMeta: no
 showActions: no
 ---
 
-1. **Zhuang Z**, Cao P, Zhao S, Han L, He D, Yang LJAoTM. The shortage of hospital beds for COVID-19 and non-COVID-19 patients during the lockdown of Wuhan, China. *Annals of Translational Medicine*. 2021;9(3):200.
+1. **Zhuang Z**, Cao P, Zhao S, Han L, He D, Yang L. The shortage of hospital beds for COVID-19 and non-COVID-19 patients during the lockdown of Wuhan, China. *Annals of Translational Medicine*. 2021;9(3):200.
 
 1. **Zhuang Z**, Zhao S, Lin Q, Cao P, Lou Y, Yang L, et al. Preliminary estimates of the reproduction number of the coronavirus disease (COVID-19) outbreak in Republic of Korea and Italy by 5 March 2020. *International Journal of Infectious Diseases*. 2020;95:308-10.
 

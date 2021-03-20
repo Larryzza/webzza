@@ -15,8 +15,13 @@ _M.S. in Biostatistics, Fielding School of Public Health_\
 **_Sep 2020 – present_**
 
 - The Hong Kong Polytechnic University\
+_Research Assistant, Department of Applied Mathematics_\
+_Supervisor: Dr. Daihai HE_\
+**_Sep 2019 – Aug 2020_**
+
+- The Hong Kong Polytechnic University\
 _B.B.A. (Hons) in Financial Services, Minor in Applied Mathematics_\
-**_Sep 2015 – Aug 2020_**
+**_Sep 2015 – Aug 2019_**
 
 ______________
 

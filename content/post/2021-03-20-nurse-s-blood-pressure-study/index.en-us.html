@@ -33,11 +33,11 @@ showActions: no
 <h1>The model</h1>
 <p>We will use linear regression with random effects to model this data. We denoted <span class="math inline">\(k^{\text{th}}\)</span> systolic blood pressure (SBP) test result for the <span class="math inline">\(i^{\text{th}}\)</span> nurse by <span class="math inline">\(y_{ik}\)</span>. The proposed model is:
 <span class="math display">\[\begin{equation}
-    y_{ik} = \beta_i+\alpha_0+\alpha_1 \text{Fam1}_{ik}+\alpha_2 \text{Fam2}_{ik}+\alpha_3 \text{Work}_{ik}+\alpha_4 \text{Phase}_{ik}+\alpha_5 \text{Fam*work}_{ik}
+    \mu_{ik} = \beta_i+\alpha_0+\alpha_1 \text{Fam1}_{ik}+\alpha_2 \text{Fam2}_{ik}+\alpha_3 \text{Work}_{ik}+\alpha_4 \text{Phase}_{ik}+\alpha_5 \text{Fam*work}_{ik}
 \end{equation}\]</span>
-where <span class="math inline">\(i\)</span> runs from 1 to 203, <span class="math inline">\(k\)</span> runs from 1 to 9573. The random effect terms <span class="math inline">\(\beta_i|\tau_b\sim N(0,\tau_b)\)</span> are independent and identically distributed given precision <span class="math inline">\(\tau_b\)</span>. Interception parameter <span class="math inline">\(\alpha_0\)</span> is assumed normal distributed. Note that <span class="math inline">\(\alpha_0\)</span> represents baseline SBP level that is not recorded on week day nor within the phase for individuals who has no parents with hypertension. Parameters <span class="math inline">\(\alpha_1\sim\alpha_5\)</span> are regression coefficients and also are assumed normal distributed. We assumed that SBP values follows a normal distribution with mean <span class="math inline">\(\mu\)</span> and precision <span class="math inline">\(\tau_e\)</span> (Eqn 2).</p>
+where <span class="math inline">\(i\)</span> runs from 1 to 203, <span class="math inline">\(k\)</span> runs from 1 to 9573. The random effect terms <span class="math inline">\(\beta_i|\tau_b\sim N(0,\tau_b)\)</span> are independent and identically distributed given precision <span class="math inline">\(\tau_b\)</span>. Interception parameter <span class="math inline">\(\alpha_0\)</span> is assumed normal distributed. Note that <span class="math inline">\(\alpha_0\)</span> represents baseline SBP level that is not recorded on week day nor within the phase for individuals who has no parents with hypertension. Parameters <span class="math inline">\(\alpha_1\sim\alpha_5\)</span> are regression coefficients and also are assumed normal distributed. We assumed that SBP values follows a normal distribution with mean <span class="math inline">\(\mu_{ik}\)</span> and precision <span class="math inline">\(\tau_e\)</span> (Eqn 2).</p>
 <p><span class="math display">\[\begin{equation}
-    y_{ik}\sim N(\mu,\tau_e)
+    y_{ik}\sim N(\mu_{ik},\tau_e)
 \end{equation}\]</span></p>
 </div>
 <div id="prior-information" class="section level1">

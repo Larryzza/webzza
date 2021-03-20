@@ -32,12 +32,12 @@ Since all of the variables are binary, there was no outlier within the predictor
 
 We will use linear regression with random effects to model this data. We denoted $k^{\text{th}}$ systolic blood pressure (SBP) test result for the $i^{\text{th}}$ nurse by $y_{ik}$. The proposed model is:
 \begin{equation}
-    y_{ik} = \beta_i+\alpha_0+\alpha_1 \text{Fam1}_{ik}+\alpha_2 \text{Fam2}_{ik}+\alpha_3 \text{Work}_{ik}+\alpha_4 \text{Phase}_{ik}+\alpha_5 \text{Fam*work}_{ik}
+    \mu_{ik} = \beta_i+\alpha_0+\alpha_1 \text{Fam1}_{ik}+\alpha_2 \text{Fam2}_{ik}+\alpha_3 \text{Work}_{ik}+\alpha_4 \text{Phase}_{ik}+\alpha_5 \text{Fam*work}_{ik}
 \end{equation}
-where $i$ runs from 1 to 203, $k$ runs from 1 to 9573. The random effect terms $\beta_i|\tau_b\sim N(0,\tau_b)$ are independent and identically distributed given precision $\tau_b$. Interception parameter $\alpha_0$ is assumed normal distributed. Note that $\alpha_0$ represents baseline SBP level that is not recorded on week day nor within the phase for individuals who has no parents with hypertension. Parameters $\alpha_1\sim\alpha_5$ are regression coefficients and also are assumed normal distributed. We assumed that SBP values follows a normal distribution with mean $\mu$ and precision $\tau_e$ (Eqn 2). 
+where $i$ runs from 1 to 203, $k$ runs from 1 to 9573. The random effect terms $\beta_i|\tau_b\sim N(0,\tau_b)$ are independent and identically distributed given precision $\tau_b$. Interception parameter $\alpha_0$ is assumed normal distributed. Note that $\alpha_0$ represents baseline SBP level that is not recorded on week day nor within the phase for individuals who has no parents with hypertension. Parameters $\alpha_1\sim\alpha_5$ are regression coefficients and also are assumed normal distributed. We assumed that SBP values follows a normal distribution with mean $\mu_{ik}$ and precision $\tau_e$ (Eqn 2). 
 
 \begin{equation}
-    y_{ik}\sim N(\mu,\tau_e)
+    y_{ik}\sim N(\mu_{ik},\tau_e)
 \end{equation}
 
 # Prior information

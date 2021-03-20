@@ -1,0 +1,644 @@
+---
+title: Data science practice 2
+author: Zian ZHUANG
+date: '2021-03-10'
+slug: Data science practice 2
+categories:
+  - Data science
+tags:
+  - practice
+keywords:
+  - tech
+comments: no
+showMeta: no
+showActions: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>tidyverse in R
+<!--more--></p>
+<div id="q1.-physionet-credential" class="section level2">
+<h2>Q1. PhysioNet credential</h2>
+<div id="q1.1" class="section level3">
+<h3>Q1.1</h3>
+<p>At this moment, you should already get credentialed on the PhysioNet. Please include a screenshot of your <code>Data Use Agreement for the MIMIC-IV (v0.4)</code>.</p>
+<blockquote>
+<p><strong>solution</strong>: <img src="/post/2021-03-20-data-science-practice-2/index.en-us_files/agreement.png" /></p>
+</blockquote>
+</div>
+</div>
+<div id="q2.-read.csv-base-r-vs-read_csv-tidyverse-vs-fread-data.table" class="section level2">
+<h2>Q2. <code>read.csv</code> (base R) vs <code>read_csv</code> (tidyverse) vs <code>fread</code> (data.table)</h2>
+<p>There are quite a few utilities in R for reading data files. Let us test the speed of reading a moderate sized compressed csv file, <code>admissions.csv.gz</code>, by three programs: <code>read.csv</code> in base R, <code>read_csv</code> in tidyverse, and <code>fread</code> in the popular data.table package. Is there any speed difference?</p>
+<p>In this homework, we stick to the tidyverse.</p>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>.timer &lt;- function(fun_input){
+  timestart &lt;- Sys.time()
+  adm &lt;- fun_input(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)) 
+  timeend &lt;- Sys.time()
+  return(timeend - timestart)
+}
+lapply(list(&quot;read_csv&quot; = read_csv,
+            &quot;read.csv&quot; = read.csv,
+            &quot;fread&quot; = fread), .timer)</code></pre>
+<p><code>fread</code> is proved to be the fastest function to read the file. <code>read.csv</code> is the slowest function.</p>
+</div>
+<div id="q3.-icu-stays" class="section level2">
+<h2>Q3. ICU stays</h2>
+<p><code>icustays.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/icustays/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/icustays/</a>) contains data about Intensive Care Units (ICU) stays. Summarize following variables using appropriate numerics or graphs:</p>
+<pre class="r"><code>icustays &lt;- read_csv(str_c(mimic_path, &quot;/icu/icustays.csv.gz&quot;))</code></pre>
+<div id="q3.1-how-many-unique-stay_id" class="section level3">
+<h3>Q3.1 how many unique <code>stay_id</code>?</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>icustays %&gt;% 
+  distinct(stay_id) %&gt;% 
+  nrow() %&gt;%
+  str_c(., &quot; unique stay_id&quot;)  </code></pre>
+</div>
+<div id="q3.2-how-many-unique-subject_id" class="section level3">
+<h3>Q3.2 how many unique <code>subject_id</code>?</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>icustays %&gt;%  
+  distinct(subject_id) %&gt;% 
+  nrow() %&gt;%
+  str_c(., &quot; unique subject_id&quot;)</code></pre>
+</div>
+<div id="q3.3-length-of-icu-stay" class="section level3">
+<h3>Q3.3 length of ICU stay</h3>
+<blockquote>
+<p><strong>solution</strong>:
+<strong>please note that we took the log scale of x-axis to present data in a more readable way</strong></p>
+</blockquote>
+<pre class="r"><code>icustays$los %&gt;% summary
+ggplot(data = icustays) +
+  geom_histogram(mapping = aes(x = los), bins = 150) +
+  scale_x_log10() +
+  xlab(&quot;length of ICU stay (days)&quot;)+
+  theme_classic() </code></pre>
+</div>
+<div id="q3.4-first-icu-unit" class="section level3">
+<h3>Q3.4 first ICU unit</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>icustays %&gt;% 
+  group_by(first_careunit) %&gt;% 
+  summarise(n = n()) %&gt;%
+  arrange(desc(n))
+ggplot(data = icustays, 
+       mapping = aes(x = factor(1), fill = first_careunit)) +
+  scale_fill_discrete(name = &quot;ICUs&quot;) +
+  xlab(NULL) +
+  ylab(NULL) +
+  geom_bar() + 
+  coord_polar(&quot;y&quot;) +
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank())</code></pre>
+</div>
+<div id="q3.5-last-icu-unit" class="section level3">
+<h3>Q3.5 last ICU unit</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>icustays %&gt;% 
+  group_by(last_careunit) %&gt;% 
+  summarise(n = n()) %&gt;%
+  arrange(desc(n))
+ggplot(data = icustays, 
+       mapping = aes(x = factor(1), fill = last_careunit)) +
+  scale_fill_discrete(name = &quot;ICUs&quot;) +
+  xlab(NULL) +
+  ylab(NULL) +
+  geom_bar() + 
+  coord_polar(&quot;y&quot;) +
+  theme(axis.ticks = element_blank(), 
+        axis.text.y = element_blank())</code></pre>
+</div>
+</div>
+<div id="q4.-admission-data" class="section level2">
+<h2>Q4. <code>admission</code> data</h2>
+<p>Information of the patients admitted into hospital is available in <code>admissions.csv.gz</code>. See <a href="https://mimic-iv.mit.edu/docs/datasets/core/admissions/" class="uri">https://mimic-iv.mit.edu/docs/datasets/core/admissions/</a> for details of each field in this file. Summarize following variables using appropriate graphs. Explain any patterns you observe.</p>
+<pre class="r"><code>adm &lt;- read_csv(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;))</code></pre>
+<p>Note it is possible that one patient (uniquely identified by the <code>subject_id</code>) is admitted into hospital multiple times. When summarizing some demographic information, it makes sense to summarize based on unique patients.</p>
+<div id="q4.1-admission-year" class="section level3">
+<h3>Q4.1 admission year</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&lt;&gt;% mutate(admission_year=year(adm$admittime))
+adm$admission_year %&gt;% summary
+ggplot(adm, aes(x = admission_year)) + 
+  geom_bar(colour = &quot;black&quot;, fill = &quot;white&quot;) +
+  theme_classic()</code></pre>
+</div>
+<div id="q4.2-admission-month" class="section level3">
+<h3>Q4.2 admission month</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&lt;&gt;% mutate(admission_month=month(adm$admittime))
+adm %&gt;% 
+  group_by(admission_month) %&gt;% 
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm) + 
+  geom_bar(mapping = aes(x = admission_month, 
+                         fill = admission_month %&gt;% as.factor)) +
+  scale_fill_discrete(name = &quot;month&quot;) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.3-admission-month-day" class="section level3">
+<h3>Q4.3 admission month day</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&lt;&gt;% mutate(admission_monthday=day(adm$admittime))
+adm$admission_monthday %&gt;% summary
+ggplot(adm, aes(x = admission_monthday)) + 
+  geom_bar(colour = &quot;black&quot;, fill = &quot;white&quot;) +
+  theme_classic()</code></pre>
+</div>
+<div id="q4.4-admission-week-day" class="section level3">
+<h3>Q4.4 admission week day</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&lt;&gt;% mutate(admission_weekday=wday(adm$admittime))
+adm %&gt;% 
+  group_by(admission_weekday) %&gt;% 
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm) + 
+  geom_bar(mapping = aes(x = admission_weekday, 
+                         fill = admission_weekday %&gt;% as.factor)) +
+  scale_fill_discrete(name = &quot;weekday&quot;) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.5-admission-hour-anything-unusual" class="section level3">
+<h3>Q4.5 admission hour (anything unusual?)</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&lt;&gt;% mutate(admission_hour=hour(adm$admittime))
+adm$admission_hour %&gt;% summary
+ggplot(adm, aes(x = admission_hour)) + 
+  geom_bar(colour = &quot;black&quot;, fill = &quot;white&quot;) +
+  theme_classic() </code></pre>
+<p>According to the barplot, we found that there are more admissions during the night than during the day.</p>
+</div>
+<div id="q4.6-number-of-deaths-in-each-year" class="section level3">
+<h3>Q4.6 number of deaths in each year</h3>
+<p>Firstly we need check whether the indicators for the death cases are consistent (<code>deathtime</code>,<code>hospital_expire_flag</code>).</p>
+<pre class="r"><code>adm %&gt;%
+  mutate(test = ifelse((is.na(deathtime) == FALSE &amp; 
+                          hospital_expire_flag == 0)|
+                         (is.na(deathtime) == TRUE &amp; 
+                            hospital_expire_flag == 1), 1, 0)) %&gt;%
+  filter(test == 1) %&gt;%
+  select(subject_id, deathtime, 
+         hospital_expire_flag, discharge_location)</code></pre>
+<p><strong>Note</strong>: We found that there are some cases whose <code>deathtime</code> is missing but <code>hospital_expire_flag</code> equals 1. Referring to the other terms (e.g. <code>discharge_location</code>), <code>hospital_expire_flag</code> is turn out to be the more presise indicator. Thus, we decided to choose <strong><code>hospital_expire_flag</code></strong> as the indicator for death cases.</p>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;%
+  filter(hospital_expire_flag == 1) %&gt;%
+  group_by(admission_year) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm %&gt;% filter(is.na(deathtime) == FALSE), 
+       aes(x = admission_year)) + 
+  geom_bar(colour = &quot;black&quot;, fill = &quot;white&quot;) +
+  theme_classic()</code></pre>
+</div>
+<div id="q4.7-admission-type" class="section level3">
+<h3>Q4.7 admission type</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  group_by(admission_type) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm) + 
+  geom_bar(mapping = aes(x = admission_type, fill = admission_type)) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.8-number-of-admissions-per-patient" class="section level3">
+<h3>Q4.8 number of admissions per patient</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>number_of_ad &lt;- adm %&gt;% 
+  group_by(subject_id) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(n) %&gt;%
+  mutate(num = ifelse(n&gt;=5, 5, n))
+number_of_ad$num %&lt;&gt;% ordered(levels = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;))
+ggplot(number_of_ad) + 
+  geom_bar(mapping = aes(x = num , fill = num)) +
+  xlab(&quot;number of admissions&quot;) +
+  scale_fill_discrete(name = &quot;number of admissions&quot;, 
+                      labels = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;&gt;=5&quot;)) +
+  theme(panel.background = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.9-admission-location" class="section level3">
+<h3>Q4.9 admission location</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  group_by(admission_location) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm) + 
+  geom_bar(mapping = aes(x = admission_location, fill = admission_location)) +
+  scale_y_sqrt() +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.9-discharge-location" class="section level3">
+<h3>Q4.9 discharge location</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  group_by(discharge_location) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm) + 
+  geom_bar(mapping = aes(x = discharge_location, fill = discharge_location)) +
+  scale_y_sqrt() +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.10-insurance" class="section level3">
+<h3>Q4.10 insurance</h3>
+<blockquote>
+<p><strong>solution</strong>: (summarized based on unique patients)</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;% 
+  group_by(insurance) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE)) + 
+  geom_bar(mapping = aes(x = insurance, fill = insurance)) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.11-language" class="section level3">
+<h3>Q4.11 language</h3>
+<blockquote>
+<p><strong>solution</strong>: (summarized based on unique patients)</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;% 
+  group_by(language) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE)) + 
+  geom_bar(mapping = aes(x = language, fill = language)) +
+  scale_fill_discrete(label = c(&quot;unknown&quot;,&quot;English&quot;)) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.12-marital-status" class="section level3">
+<h3>Q4.12 marital status</h3>
+<blockquote>
+<p><strong>solution</strong>: (summarized based on unique patients)</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;%
+  group_by(marital_status) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE)) + 
+  geom_bar(mapping = aes(x = marital_status, fill = marital_status)) +
+  scale_fill_discrete(name = &quot;marital status&quot;) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.13-ethnicity" class="section level3">
+<h3>Q4.13 ethnicity</h3>
+<blockquote>
+<p><strong>solution</strong>: (summarized based on unique patients)</p>
+</blockquote>
+<pre class="r"><code>adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;% 
+  group_by(ethnicity) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm %&gt;% 
+  distinct(subject_id, .keep_all = TRUE)) + 
+  geom_bar(mapping = aes(x = ethnicity, fill = ethnicity)) +
+  scale_fill_discrete(name = &quot;ethnicity&quot;) +
+  scale_y_sqrt() +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q4.14-death" class="section level3">
+<h3>Q4.14 death</h3>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<pre class="r"><code>adm %&lt;&gt;% mutate(death = ifelse(hospital_expire_flag == 1, &quot;Yes&quot;, &quot;No&quot;))
+adm %&gt;% 
+  group_by(death) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;) %&gt;%
+  arrange(desc(n))
+ggplot(adm) + 
+  geom_bar(mapping = aes(x = death, fill = death)) +
+  scale_fill_discrete(name = &quot;death&quot;) +
+  scale_y_sqrt() +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+</div>
+<div id="q5.-patient-data" class="section level2">
+<h2>Q5. <code>patient</code> data</h2>
+<p>Explore <code>patients.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/core/patients/" class="uri">https://mimic-iv.mit.edu/docs/datasets/core/patients/</a>) and summarize following variables using appropriate numerics and graphs:</p>
+<pre class="r"><code>patients &lt;- read_csv(str_c(mimic_path, &quot;/core/patients.csv.gz&quot;))</code></pre>
+<div id="q5.1-gender" class="section level3">
+<h3>Q5.1 <code>gender</code></h3>
+<blockquote>
+<p><strong>solution</strong>: (summarized based on unique patients)</p>
+</blockquote>
+<pre class="r"><code>patients %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;%
+  group_by(gender) %&gt;%
+  summarise(n = n(), .groups = &quot;keep&quot;)
+ggplot(patients %&gt;% 
+  distinct(subject_id, .keep_all = TRUE)) + 
+  geom_bar(mapping = aes(x = gender, fill = gender)) +
+  scale_fill_discrete(name = &quot;gender&quot;, 
+                      label = c(&quot;Female&quot;, &quot;Male&quot;)) +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = &quot;black&quot;))</code></pre>
+</div>
+<div id="q5.2-anchor_age" class="section level3">
+<h3>Q5.2 <code>anchor_age</code></h3>
+<p>(explain pattern you see)</p>
+<blockquote>
+<p><strong>solution</strong>: (summarized based on unique patients)</p>
+</blockquote>
+<pre class="r"><code>patients %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;%
+  select(anchor_age) %&gt;%
+  summary
+ggplot(patients %&gt;% 
+  distinct(subject_id, .keep_all = TRUE)) + 
+  geom_density(mapping = aes(x = anchor_age)) +
+  xlab(&quot;anchor_age&quot;)+
+  theme_classic() </code></pre>
+<p>According to the summary statistics, the mean anchor age of patients are 41. And figure presents that the anchor age of patients has two peak at 0 and 25 respectively. Very few patients have anchor age at around 10. Then we presumed that the peak in age 0 should be correspond to the missing data or some corrupted data. Thus, we filter out the anchor_age which equals 0 and plot again.</p>
+<pre class="r"><code>patients %&gt;% 
+  distinct(subject_id, .keep_all = TRUE) %&gt;%
+  filter(anchor_age != 0) %&gt;%
+  ggplot() +
+  geom_density(mapping = aes(x = anchor_age)) +
+  xlab(&quot;anchor_age (filter out 0)&quot;)+
+  theme_classic() </code></pre>
+</div>
+</div>
+<div id="q6.-lab-results" class="section level2">
+<h2>Q6. Lab results</h2>
+<p><code>labevents.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/hosp/labevents/" class="uri">https://mimic-iv.mit.edu/docs/datasets/hosp/labevents/</a>) contains all laboratory measurements for patients.</p>
+<p>We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), calcium (50893), and lactate (50813). Find the <code>itemid</code>s of these lab measurements from <code>d_labitems.csv.gz</code> and retrieve a subset of <code>labevents.csv.gz</code> only containing these items.</p>
+<p><strong>solution</strong>:</p>
+<p><strong>Quick check the data file</strong></p>
+<pre class="r"><code>readLines(str_c(mimic_path, &quot;/hosp/labevents.csv.gz&quot;), n = 5L)</code></pre>
+<p><strong>Begin data processing</strong></p>
+<pre class="r"><code>item_list &lt;- c(&quot;creatinine&quot;, &quot;potassium&quot;, &quot;sodium&quot;, 
+               &quot;chloride&quot;, &quot;bicarbonate&quot;, &quot;hematocrit&quot;, 
+               &quot;white blood cell&quot;, &quot;glucose&quot;, 
+               &quot;magnesium&quot;, &quot;calcium&quot;, &quot;lactate&quot;)
+lab_name &lt;- c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;itemid&quot;,
+              &quot;charttime&quot;, &quot;valuenum&quot;)
+#              
+#read and save
+#
+if (!file.exists(&quot;labevents_icu.csv.gz&quot;)){
+  system.time(labevents &lt;- fread(str_c(mimic_path, &quot;/hosp/labevents.csv.gz&quot;),
+                     select = lab_name, nThread = getDTthreads()))
+  labevents %&gt;%
+    semi_join(icustays, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+    fwrite(&quot;labevents_icu.csv.gz&quot;, nThread = getDTthreads())
+}
+labitems &lt;- fread(str_c(mimic_path, &quot;/hosp/d_labitems.csv.gz&quot;))
+system.time(labevents_icu &lt;- fread(&quot;labevents_icu.csv.gz&quot;,
+                                   nThread = getDTthreads()))
+#
+#define lookup function
+#
+.look_up &lt;- function(x, type = &quot;look_up&quot;, input = NULL){
+  if(type == &quot;look_up&quot;){
+    lookup &lt;- input %&gt;%
+      filter(str_detect(label, regex(x, ignore_case = TRUE))) %&gt;%
+      select(itemid, label) 
+    return(lookup)
+  } else if(type == &quot;find_id&quot;){
+    count &lt;- input %&gt;%
+      filter(itemid %in% as_vector(x$itemid)) %&gt;%
+      count(itemid) %&gt;%
+      arrange(desc(n)) %&gt;% .[1, 1]
+    return(count)
+  }
+}
+#
+#find data matching item id and save
+#
+idkey_all &lt;- lapply(item_list %&gt;% as.list, 
+                    .look_up, 
+                    input = labitems)
+idkey &lt;- sapply(idkey_all, 
+                .look_up, 
+                type=&quot;find_id&quot;, 
+                input = labevents_icu)
+if (!file.exists(&quot;labevents_icu_selected.csv.gz&quot;)){
+  labevents_icu %&gt;%
+  filter(itemid %in% as_vector(idkey)) %&gt;%
+  left_join(Reduce(rbind, idkey_all), by = &quot;itemid&quot;) %&gt;%
+  fwrite(&quot;labevents_icu_selected.csv.gz&quot;, nThread = getDTthreads())
+}</code></pre>
+<p><strong>Check the content of the processed data</strong></p>
+<pre class="r"><code>labevents_icu &lt;- fread(&quot;labevents_icu_selected.csv.gz&quot;,
+                         nThread = getDTthreads())
+labevents_icu</code></pre>
+</div>
+<div id="q7.-vitals-from-chartered-events" class="section level2">
+<h2>Q7. Vitals from chartered events</h2>
+<p>We are interested in the vitals for ICU patients: heart rate, mean and systolic blood pressure (invasive and noninvasive measurements combined), body temperature, SpO2, and respiratory rate. Find the <code>itemid</code>s of these vitals from <code>d_items.csv.gz</code> and retrieve a subset of <code>chartevents.csv.gz</code> only containing these items.</p>
+<p><code>chartevents.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/</a>) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The <code>itemid</code> variable indicates a single measurement type in the database. The <code>value</code> variable is the value measured for <code>itemid</code>.</p>
+<p><code>d_items.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/d_items/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/d_items/</a>) is the dictionary for the <code>itemid</code> in <code>chartevents.csv.gz</code>.</p>
+<p><strong>solution</strong>:</p>
+<p><strong>Quick check the data file</strong></p>
+<pre class="r"><code>readLines(str_c(mimic_path, &quot;/icu/chartevents.csv.gz&quot;), n = 5L)</code></pre>
+<p><strong>Begin data processing</strong></p>
+<pre class="r"><code>item_list2 &lt;- c(&quot;heart rate&quot;, &quot;arterial blood pressure systolic&quot;, 
+                &quot;arterial blood pressure mean&quot;, 
+                &quot;invasive blood pressure mean&quot;,
+                &quot;invasive blood pressure systolic&quot;, &quot;temperature&quot;, 
+                &quot;SpO2&quot;, &quot;respiratory rate&quot;)
+char_name &lt;- c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;itemid&quot;,
+              &quot;charttime&quot;, &quot;valuenum&quot;)
+#
+#read and save
+#
+if (!file.exists(&quot;chartevents_icu.csv.gz&quot;)){
+  system.time(chartevents &lt;- fread(str_c(mimic_path, 
+                                         &quot;/icu/chartevents.csv.gz&quot;),
+                     select = char_name, nThread = getDTthreads()))
+  chartevents %&gt;%
+    semi_join(icustays, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+    fwrite(&quot;chartevents_icu.csv.gz&quot;, nThread = getDTthreads())
+}
+d_items &lt;- fread(str_c(mimic_path, &quot;/icu/d_items.csv.gz&quot;))
+system.time(chartevents_icu &lt;- fread(&quot;chartevents_icu.csv.gz&quot;,
+                                     nThread = getDTthreads()))
+#
+#find data matching item id and save
+#
+idkey_all2 &lt;- lapply(item_list2 %&gt;% as.list, 
+                     .look_up, 
+                     input = d_items)
+idkey2 &lt;- sapply(idkey_all2, 
+                 .look_up, 
+                 type=&quot;find_id&quot;, 
+                 input = chartevents_icu)
+if (!file.exists(&quot;chartevents_icu_selected.csv.gz&quot;)){
+  chartevents_icu %&gt;%
+  filter(itemid %in% as_vector(idkey2)) %&gt;%
+  left_join(Reduce(rbind, idkey_all2), by = &quot;itemid&quot;) %&gt;%
+  fwrite(&quot;chartevents_icu_selected.csv.gz&quot;, nThread = getDTthreads())
+}</code></pre>
+<p><strong>Check the content of the processed data</strong></p>
+<pre class="r"><code>chartevents_icu &lt;- fread(&quot;chartevents_icu_selected.csv.gz&quot;,
+                         nThread = getDTthreads())
+chartevents_icu</code></pre>
+</div>
+<div id="q8.-putting-things-together" class="section level2">
+<h2>Q8. Putting things together</h2>
+<p>Let us create a tibble for all ICU stays, where rows are</p>
+<ul>
+<li>first ICU stay of each unique patient<br />
+</li>
+<li>adults (age at admission &gt; 18)</li>
+</ul>
+<p>and columns contain at least following variables</p>
+<ul>
+<li>all variables in <code>icustays.csv.gz</code><br />
+</li>
+<li>all variables in <code>admission.csv.gz</code><br />
+</li>
+<li>all variables in <code>patients.csv.gz</code><br />
+</li>
+<li>first lab measurements during ICU stay<br />
+</li>
+<li>first vitals measurement during ICU stay<br />
+</li>
+<li>an indicator variable whether the patient died within 30 days of hospital admission</li>
+</ul>
+<p><strong>solution</strong>:</p>
+<pre class="r"><code>which(duplicated(labevents_icu) == TRUE) %&gt;% length
+which(duplicated(chartevents_icu) == TRUE) %&gt;% length</code></pre>
+<p>After a quick check, we found that there are some patients have more than one record at a single time point (duplicated resords). Thus, we need to only keep one record.</p>
+<pre class="r"><code>#keep the first lab\vitals measurements
+labevents_icu %&gt;%
+  mutate_at(vars(charttime), ymd_hms) %&gt;%
+  left_join(icustays %&gt;% 
+              select(c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;intime&quot;)), 
+            by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+  filter(charttime &gt;= intime) %&gt;%
+  group_by(subject_id, label) %&gt;%
+  arrange(charttime, .by_group = FALSE) %&gt;%
+  slice_head(n = 1) %&gt;%
+  select(-c(charttime, itemid, intime)) %&gt;%
+  spread(key = label, value = valuenum) %&gt;%
+  fwrite(&quot;labevents_icu_final.csv.gz&quot;, nThread = getDTthreads())
+
+chartevents_icu %&gt;%
+  mutate_at(vars(charttime), ymd_hms) %&gt;%
+  left_join(icustays %&gt;% 
+              select(c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;intime&quot;)), 
+            by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+  filter(charttime &gt;= intime) %&gt;%
+  group_by(subject_id, label) %&gt;%
+  arrange(charttime, .by_group = FALSE) %&gt;%
+  slice_head(n = 1) %&gt;%
+  select(-c(charttime, itemid, intime)) %&gt;%
+  spread(key = label, value = valuenum) %&gt;%
+  fwrite(&quot;chartevents_icu_final.csv.gz&quot;, nThread = getDTthreads())</code></pre>
+<p>Then we can prepare the final dataset</p>
+<pre class="r"><code>#read in data
+labevents_icu &lt;- fread(&quot;labevents_icu_final.csv.gz&quot;,
+                         nThread = getDTthreads())
+chartevents_icu &lt;- fread(&quot;chartevents_icu_final.csv.gz&quot;,
+                         nThread = getDTthreads())
+#all variables in `icustays.csv.gz`
+final_icu_dataset &lt;- icustays %&gt;%
+  # first ICU stay of each unique patient 
+  group_by(subject_id) %&gt;%
+  slice_min(intime) %&gt;%
+  # add all variables in `admission.csv.gz` 
+  left_join(adm, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+  # add all variables in `patients.csv.gz` 
+  left_join(patients, by = &quot;subject_id&quot;) %&gt;%
+  mutate(age_at_adm = year(admittime) - anchor_year + anchor_age) %&gt;%
+  # adults (age at admission &gt; 18)
+  filter(age_at_adm &gt;= 18) %&gt;%
+  # add first vitals measurement during ICU stay
+  left_join(chartevents_icu, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+  # add first lab measurements during ICU stay
+  left_join(labevents_icu, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;%
+  # filter out all death cases [indicator: &quot;hospital_expire_flag&quot;]
+  mutate(death_binary = ifelse(hospital_expire_flag == 1, &quot;Yes&quot;, &quot;No&quot;)) %&gt;%
+  # indicator variable whether the patient died within 30 days of admission
+  mutate(death_30 = ifelse(deathtime - intime &lt;= 30, &quot;Yes&quot;, &quot;No&quot;))
+
+print(final_icu_dataset, width = Inf)</code></pre>
+<p>Set NA as “No” in indicator variable and compare with with <code>death_binary</code></p>
+<pre class="r"><code>final_icu_dataset %&gt;%
+  ungroup() %&gt;% 
+  mutate_at(vars(death_30), 
+            function(x){ifelse(is.na(x) == TRUE, &quot;No&quot;, x)}) %&gt;% 
+  count(death_30, death_binary)</code></pre>
+</div>

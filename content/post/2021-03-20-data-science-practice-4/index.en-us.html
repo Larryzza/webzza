@@ -1,0 +1,451 @@
+---
+title: Data science practice 4
+author: Zian ZHUANG
+date: '2021-03-13'
+slug: Data science practice 4
+categories:
+  - Data science
+tags:
+  - practice
+keywords:
+  - tech
+comments: no
+showMeta: no
+showActions: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>Multiple imputation &amp; modeling
+<!--more--></p>
+<div id="q1.-missing-data" class="section level2">
+<h2>Q1. Missing data</h2>
+<p>Through the Shiny app developed in HW3, we observe abundant missing values in the MIMIC-IV ICU cohort we created. In this question, we use multiple imputation to obtain a data set without missing values.</p>
+<div id="q1.0" class="section level3">
+<h3>Q1.0</h3>
+<p>Read following tutorials on the R package miceRanger for imputation: <a href="https://github.com/farrellday/miceRanger" class="uri">https://github.com/farrellday/miceRanger</a>, <a href="https://cran.r-project.org/web/packages/miceRanger/vignettes/miceAlgorithm.html" class="uri">https://cran.r-project.org/web/packages/miceRanger/vignettes/miceAlgorithm.html</a>.</p>
+<pre><code>A more thorough book treatment of the practical imputation strategies is the book [*_Flexible Imputation of Missing Data_*](https://stefvanbuuren.name/fimd/) by Stef van Buuren. </code></pre>
+</div>
+<div id="q1.1" class="section level3">
+<h3>Q1.1</h3>
+<p>Explain the jargon MCAR, MAR, and MNAR.</p>
+<blockquote>
+<p><strong>solution</strong>:</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>MAR: missing at random. The absence of data was independent of incomplete variables as well as complete variables.</li>
+<li>MCAR: missing completely at random. The absence of data relies solely on the complete variable.</li>
+<li>MNAR: missing not at random. The absence of data in the incomplete variables relies on the incomplete variables themselves and such absence is not negligible.</li>
+</ul>
+</blockquote>
+</div>
+<div id="q1.2" class="section level3">
+<h3>Q1.2</h3>
+<p>Explain in a couple of sentences how the Multiple Imputation by Chained Equations (MICE) work.</p>
+<blockquote>
+<p><strong>solution</strong>:
+operates under the assumption that given the variables used in the imputation procedure, the missing data are Missing At Random (MAR). In the MICE procedure a series of regression models are run whereby each variable with missing data is modeled conditional upon the other variables in the data. This means that each variable can be modeled according to its distribution. <a href="https://onlinelibrary.wiley.com/doi/pdf/10.1002/mpr.329">reference link</a></p>
+</blockquote>
+</div>
+<div id="q1.3" class="section level3">
+<h3>Q1.3</h3>
+<p>Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say &gt;5000 <code>NA</code>s. Replace apparent data entry errors by <code>NA</code>s.</p>
+<blockquote>
+<p>Please note that here we dropped variables that have more than 7000 NAs. In addition, we assigned the outliers (out of 1.5*IQR range) of each numeric variables as NA.</p>
+</blockquote>
+<pre class="r"><code>#define functions
+.quantile_cut &lt;- function(x){
+  lb &lt;- quantile(df[, x] , 0.25, na.rm = TRUE)
+  ub &lt;- quantile(df[, x] , 0.75, na.rm = TRUE)
+  iqr &lt;- ub - lb
+  df[which(df[, x] &lt;= lb - 1.5*iqr | df[, x] &gt;= ub + 1.5*iqr), x] &lt;- NA
+  return(df[,x])
+}
+.na_count &lt;- function(x, data = icu_cohort){
+  na_num &lt;- which(is.na(data[, x]) == T) %&gt;% length()
+}
+
+
+icu_cohort &lt;- readRDS(&quot;./icu_cohort.rds&quot;)
+var_list &lt;- c(&quot;first_careunit&quot;,  
+&quot;los&quot;, &quot;gender&quot;, &quot;admission_type&quot;, &quot;admission_location&quot;, 
+&quot;insurance&quot;, &quot;language&quot;, &quot;marital_status&quot;, 
+&quot;ethnicity&quot;, &quot;age_at_adm&quot;, &quot;bicarbonate&quot;, &quot;calcium&quot;, &quot;chloride&quot;, 
+&quot;creatinine&quot;, &quot;glucose&quot;, &quot;magnesium&quot;, &quot;potassium&quot;, &quot;sodium&quot;, 
+&quot;hematocrit&quot;, &quot;wbc&quot;, &quot;lactate&quot;, &quot;heart_rate&quot;, 
+&quot;non_invasive_blood_pressure_systolic&quot;, &quot;non_invasive_blood_pressure_mean&quot;,
+&quot;respiratory_rate&quot;, &quot;temperature_fahrenheit&quot;, 
+&quot;arterial_blood_pressure_systolic&quot;, 
+&quot;arterial_blood_pressure_mean&quot;)
+
+
+var_list &lt;- var_list[which(apply(var_list %&gt;% 
+                                   as.matrix, 1, .na_count) &lt;= 7000)]
+
+icu_cohort %&gt;% 
+  select(all_of(var_list)) -&gt; df
+name_list &lt;- names(df %&gt;% select_if(is.numeric))[-c(1, 2)] %&gt;% as.list()
+numeric_var &lt;- lapply(name_list, .quantile_cut) %&gt;% Reduce(&quot;cbind&quot;, .)
+df &lt;- df %&gt;% 
+  select(!is.numeric) %&gt;%
+  cbind(numeric_var)</code></pre>
+</div>
+<div id="q1.4" class="section level3">
+<h3>Q1.4</h3>
+<p>Impute missing values by <code>miceRanger</code> (request <span class="math inline">\(m=3\)</span> datasets). This step is very computational intensive. Make sure to save the imputation results as a file.</p>
+<blockquote>
+<p>Note that we didn’t include the <code>age_at_adm</code> in the multiple imputation, beacase 1) it has no missing value in original data set; 2) it does not converge in the <code>miceRanger</code>; 3) it may also influence the converge of other variabls. We also removed <code>death_30</code> and <code>discharge location</code> and <code>hospital expire flag</code> since they contain the information of response (survival/dead), part of which is supposed to be unknown in the predicting part.</p>
+</blockquote>
+<pre class="r"><code># Set up back ends.
+cl &lt;- makeCluster(detectCores())
+registerDoParallel(cl)
+
+miss_list &lt;- names(df)[which(apply(names(df) %&gt;% as.matrix,
+                                   1, .na_count, data = df) &gt; 0)]
+
+# Perform mice 
+parTime &lt;- system.time(
+  miceObjPar &lt;- miceRanger(
+      df
+    , m = 3
+    , maxiter = 7
+    , vars = miss_list
+    , max.depth = 15
+    , parallel = TRUE
+    , verbose = TRUE
+  )
+)
+stopCluster(cl)
+registerDoSEQ()
+
+saveRDS(miceObjPar, file = &quot;./miceObjPar.rds&quot;)</code></pre>
+</div>
+<div id="q1.5" class="section level3">
+<h3>Q1.5</h3>
+<p>Make imputation diagnostic plots and explain what they mean.</p>
+<pre class="r"><code>miceObjPar &lt;- readRDS(&quot;./miceObjPar.rds&quot;)
+plotDistributions(miceObjPar, vars = &#39;allNumeric&#39;)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-4-1.png" /></p>
+<p>This is the Distribution of Imputed Values plots, the red line is the density of the original, nonmissing data. The smaller, black lines are the density of the imputed values in each of the datasets. According to the plots, we found that the imputed distributions is largely consistent to the original distribution for each variable. It means that the data was Missing Completely at Random (MCAR).</p>
+<pre class="r"><code>plotCorrelations(miceObjPar, vars = &#39;allNumeric&#39;)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-5-1.png" /></p>
+<p>The Convergence of Correlation plots shows boxplots of the correlations between imputed values in every combination of datasets, at each iteration. We can see that imputation for all of variables converged after 5 interactions.</p>
+<pre class="r"><code>plotVarConvergence(miceObjPar, vars=&#39;allNumeric&#39;)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-6-1.png" /></p>
+<p>The Center and Dispersion Convergence plots were designed to see whether the missing data locations are correlated with higher or lower values. From the plots, we can see that the most of imputed data were largely converged to the true theoretical mean, while <code>non_invasive_blood_pressure</code> seems have a slight convergence issue. We would ignore it at current stage.</p>
+<pre class="r"><code>plotModelError(miceObjPar, vars = &#39;allNumeric&#39;)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-7-1.png" /></p>
+<p>According to the plots of OOB accuracy for Random Forests model classification. We can see how these converged as the iterations progress: It looks like the variables were imputed with a reasonable degree of accuracy after 5 iterations.</p>
+</div>
+<div id="q1.6" class="section level3">
+<h3>Q1.6</h3>
+<p>Obtain a complete data set by averaging the 3 imputed data sets.</p>
+<pre class="r"><code>.dummy_trans &lt;- function(x){
+  out &lt;- dummy_cols(x,
+           remove_first_dummy = TRUE,
+           remove_selected_columns = TRUE)
+  return(out)
+}
+
+dataList &lt;- completeData(miceObjPar)
+Datasets_imputed &lt;- lapply(dataList, .dummy_trans)
+
+Final_data &lt;- (Datasets_imputed[[&quot;Dataset_1&quot;]] +
+  Datasets_imputed[[&quot;Dataset_2&quot;]] +
+  Datasets_imputed[[&quot;Dataset_3&quot;]])/3 
+
+df &lt;- Final_data %&gt;%
+  mutate_at(vars(&#39;first_careunit_Coronary Care Unit (CCU)&#39; : 
+                   &#39;ethnicity_WHITE&#39;), round) </code></pre>
+</div>
+</div>
+<div id="q2.-predicting-30-day-mortality" class="section level2">
+<h2>Q2. Predicting 30-day mortality</h2>
+<p>Develop at least two analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression (<code>glm()</code> function), (2) logistic regression with lasso penalty (glmnet package), (3) random forest (randomForest package), or (4) neural network.</p>
+<div id="q2.1-data-preparation" class="section level3">
+<h3>Q2.1 Data preparation</h3>
+<p>Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.</p>
+<pre class="r"><code>df &lt;- df %&gt;%
+  select(contains(c(&quot;gender&quot;, &quot;ethnicity&quot;, &quot;marital&quot;)) |
+           bicarbonate : temperature_fahrenheit) %&gt;%
+  mutate(age = icu_cohort$age_at_adm)
+
+names(df)[c(3, 4, 6)] &lt;- c(&quot;ethnicity_BLACK&quot;, &quot;ethnicity_HISPANIC&quot;,
+                          &quot;ethnicity_UNABLE&quot;)
+
+set.seed(19969)
+folds &lt;- createFolds(factor(icu_cohort$death_30), k = 5, list = T)
+
+#test data set
+data.test.x &lt;- df[folds[[1]], ] %&gt;% 
+  mutate_at(vars(bicarbonate : age), scale) %&gt;% as.matrix()
+data.test.y &lt;- dummy_cols(icu_cohort$death_30[folds[[1]]],
+           remove_first_dummy = TRUE,
+           remove_selected_columns = TRUE) %&gt;% as.matrix()
+#train data set
+data.train.x &lt;- df[folds[-1] %&gt;% Reduce(&quot;c&quot;, .), ] %&gt;% 
+  mutate_at(vars(bicarbonate : age), scale) %&gt;% as.matrix()
+data.train.y &lt;- dummy_cols(icu_cohort$death_30[folds[-1] %&gt;% Reduce(&quot;c&quot;, .)],
+           remove_first_dummy = TRUE,
+           remove_selected_columns = TRUE) %&gt;% as.matrix()</code></pre>
+</div>
+<div id="q2.2-modeling" class="section level3">
+<h3>Q2.2 Modeling</h3>
+<p>Train the models using the training set.</p>
+<blockquote>
+<p>We noticed that the data set is heavily imbalanced, which may cause the problem of low prediction accuracy for death_30 cases. Considering that a major goal of the prediction model may be sending early warning to cases which has a higher risk of death, we tryed to increase the prediction accuracy for death_30 cases by using the weighting and resampling method in two models.</p>
+</blockquote>
+<ul>
+<li><strong>Method 1</strong></li>
+</ul>
+<p>neural network (MLP) [original weight]</p>
+<pre class="r"><code>model &lt;- keras_model_sequential() 
+model %&gt;% 
+  layer_dense(units = 16, activation = &#39;relu&#39;,
+              kernel_initializer = &quot;uniform&quot;, input_shape = c(27)) %&gt;% 
+  layer_dropout(rate = 0.4) %&gt;% 
+  layer_dense(units = 8, activation = &#39;relu&#39;,
+              kernel_initializer = &quot;uniform&quot;) %&gt;%
+  layer_dropout(rate = 0.3) %&gt;%
+  layer_dense(units = 1, activation  = &quot;sigmoid&quot;)
+summary(model)
+model %&gt;% compile(
+  loss = &#39;binary_crossentropy&#39;,
+  optimizer = &#39;adam&#39;,
+  metrics = c(&#39;accuracy&#39;)
+)
+set.seed(19969)
+system.time({
+history1 &lt;- model %&gt;% fit(
+  data.train.x, data.train.y, 
+  epochs = 30, batch_size = 128, 
+  validation_split = 0.3
+)
+})
+
+model %&gt;% evaluate(data.test.x, data.test.y)
+results1 &lt;- model %&gt;% predict_proba(data.test.x) 
+saveRDS(results1, &quot;./results1.rds&quot;)
+saveRDS(history1, &quot;./history1.rds&quot;)</code></pre>
+<p>Check the confusionMatrix and history plots of prediction results</p>
+<pre class="r"><code>results1 &lt;- readRDS(&quot;./results1.rds&quot;)
+history1 &lt;- readRDS(&quot;./history1.rds&quot;)
+confusionMatrix (results1 %&gt;% round %&gt;% as.factor, 
+                 as.matrix(data.test.y) %&gt;% as.factor)
+plot(history1)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-11-1.png" /></p>
+<p>We can see from the history plot that the original model (without weighting and bias_initializer) converge very quick. It provided a high accuracy for the non death_30 cases, while the predicted accuracy for death_30 cases is terribly low.</p>
+<p>Then we tried to add weighting in the model. We also set a initializing weight for the MLP model to help model converge.</p>
+<ul>
+<li><strong>Method 1.1</strong></li>
+</ul>
+<p>neural network (MLP) [with weighting and bias_initializer]</p>
+<pre class="r"><code>model &lt;- keras_model_sequential() 
+model %&gt;% 
+  layer_dense(units = 64, activation = &#39;relu&#39;,
+              bias_initializer = initializer_constant(0.01),
+              kernel_initializer = &quot;uniform&quot;, input_shape = c(27)) %&gt;% 
+  layer_dropout(rate = 0.4) %&gt;% 
+  layer_dense(units = 32, activation = &#39;relu&#39;,
+              bias_initializer = initializer_constant(0.01),
+              kernel_initializer = &quot;uniform&quot;) %&gt;%
+  layer_dropout(rate = 0.3) %&gt;%
+  layer_dense(units = 1, activation  = &quot;sigmoid&quot;)
+summary(model)
+model %&gt;% compile(
+  loss = &#39;binary_crossentropy&#39;,
+  optimizer = &#39;adam&#39;,
+  metrics = c(&#39;accuracy&#39;)
+)
+set.seed(199609)
+system.time({
+history2 &lt;- model %&gt;% fit(
+  data.train.x, data.train.y, 
+  epochs = 700, batch_size = 128, 
+  class_weight = list(&quot;0&quot; = 1, &quot;1&quot; = 8), 
+  validation_split = 0.3
+)
+})
+
+model %&gt;% evaluate(data.test.x, data.test.y)
+results2 &lt;- model %&gt;% predict_proba(data.test.x) 
+saveRDS(results2, &quot;./results2.rds&quot;)
+saveRDS(history2, &quot;./history2.rds&quot;)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-13-1.png" /></p>
+<p>Check the confusionMatrix and history plots of prediction results</p>
+<pre class="r"><code>results2 &lt;- readRDS(&quot;./results2.rds&quot;)
+history2 &lt;- readRDS(&quot;./history2.rds&quot;)
+confusionMatrix (results2 %&gt;% round %&gt;% as.factor, 
+                 as.matrix(data.test.y) %&gt;% as.factor)
+plot(history2)</code></pre>
+<p>We can tell from the history plots that the model converged after around 400 epochs (the validation line became stable).</p>
+<ul>
+<li><strong>Method 2</strong></li>
+</ul>
+<p>XGBoost model [with variable selection and re-sampling]</p>
+<p>In this model, we created relatively balanced samples (survival:dead = 3:1) by random under-sampling method.</p>
+<pre class="r"><code>###### model function ########
+.importance_function &lt;- function(dtrain){
+  model &lt;- xgboost(data = dtrain,          
+                   nround = 500,
+                   early_stopping_rounds = 30,
+                   objective = &quot;binary:logistic&quot;,
+                   eval_metric = &quot;logloss&quot;,
+                   verbose = 0)
+  importance_matrix &lt;- xgb.importance(model = model) 
+  return(importance_matrix)
+}
+
+.auc_function_train &lt;- function(folds){
+  dtrain &lt;- xgb.DMatrix(data = b.train.x[-folds, ] %&gt;% as.matrix(),
+                        label= b.train.y[-folds] %&gt;% as.matrix())
+  dtest &lt;- xgb.DMatrix(data = b.train.x[folds, ] %&gt;% as.matrix(),
+                       label= b.train.y[folds] %&gt;% as.matrix())
+  test_labels &lt;- b.train.y[folds]
+  
+  model &lt;- xgboost(data = dtrain,          
+                   nround = 500,
+                   early_stopping_rounds = 30, 
+                   objective = &quot;binary:logistic&quot;,
+                   eval_metric = &quot;logloss&quot;,
+                   verbose = 0)
+  pred &lt;- predict(model, dtest) 
+  xgbpred &lt;- ifelse (pred &gt;= 0.5,1,0)
+  roc_l &lt;- roc(test_labels,pred)
+  auc_value &lt;- auc(roc_l)
+  return(auc_value)
+}
+
+.model_function_Total &lt;- function(importance=F,auc=T){
+  if(importance==T){
+    cv.group.x &lt;- lapply(folds,function(x){out&lt;-NULL;
+    out&lt;-rbind(out,data.frame(label = b.train.y[-x], b.train.x[-x,]))})
+    cv.group.y &lt;- lapply(folds,function(x){out&lt;-NULL;
+    out&lt;-rbind(out,data.frame(label = b.train.y[x], b.train.x[x,]))})
+    
+    dtrain &lt;- lapply(cv.group.x, 
+                     function(x){out &lt;- xgb.DMatrix(data = x %&gt;% as.matrix() 
+                                                    %&gt;% .[,-1],
+                                                    label= x %&gt;% as.matrix()
+                                                    %&gt;% .[,1])})
+    dtest &lt;- lapply(cv.group.y, 
+                    function(x){out&lt;-xgb.DMatrix(data = x %&gt;% as.matrix()
+                                                 %&gt;% .[,-1],
+                                                 label= x %&gt;% as.matrix() 
+                                                 %&gt;% .[,1])})
+    importance_matrix &lt;- lapply(dtrain, .importance_function) 
+    importance_combine &lt;- Reduce(&quot;rbind&quot;, importance_matrix)
+    return(importance_combine)
+  }else if(auc==T){
+    auc_value &lt;- sapply(folds, .auc_function_train) #%&gt;% mean() 
+    auc_value_combine &lt;- c(auc_value_combine, auc_value)
+    return(auc_value_combine)
+  }
+}</code></pre>
+<p>Firstly we tried to rank the importance of all variables by 10-folder cross validation</p>
+<pre class="r"><code>importance_combine &lt;- NULL
+temp &lt;- cbind(data.train.y,data.train.x) %&gt;% as.data.frame()
+
+for(i in 1:300){
+  set.seed(1e7-i)
+  data.balanced &lt;- ovun.sample(.data_Yes~., data = temp, p = 0.33,
+                               method = &quot;under&quot;)$data
+  b.train.x &lt;- data.balanced[, -1] %&gt;% as.matrix()
+  b.train.y &lt;- data.balanced[, 1] %&gt;% as.matrix()
+  folds &lt;- createFolds(factor(b.train.y), k = 10, list = T)
+  importance_combine &lt;- rbind(importance_combine,
+                              .model_function_Total(importance = T, auc = F))
+  print(i)
+}
+
+importance_combine %&gt;%
+  group_by(Feature) %&gt;%
+  summarise(mean = mean(Gain)) %&gt;%
+  arrange(desc(mean)) -&gt; importance_sum
+
+saveRDS(importance_sum, &quot;importance_sum.rds&quot;)</code></pre>
+<p>Check the plot of top 10 important variables</p>
+<pre class="r"><code>importance_sum &lt;- readRDS(&quot;importance_sum.rds&quot;)
+ggplot(data = importance_sum[1:10, ],
+       mapping = aes(x = reorder(Feature, -mean), y = mean, fill=Feature))+
+  geom_bar(stat = &quot;identity&quot;)+
+  scale_fill_brewer(palette = &quot;RdBu&quot;) +
+  xlab(NULL)+
+  ylab(&quot;Relative Rmpotortance&quot;)+
+  theme_few()+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank())</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-16-1.png" /></p>
+<p>Then we did a forward-stepwise variable selection according to the AIC value (10-folder cross validation average).</p>
+<pre class="r"><code>feature_select&lt;-NULL;auc.comb&lt;-NULL
+for(f in 1:15) {
+  auc_value_combine&lt;-NULL
+  feature_select&lt;-importance_sum$Feature[1:f]
+  temp &lt;- cbind(data.train.y, 
+                data.train.x[,feature_select]) %&gt;% as.data.frame()
+  
+  for(i in 1:100){
+    set.seed(1e7-i)
+    data.balanced &lt;- ovun.sample(.data_Yes~., data = temp, p = 0.33,
+                                 method = &quot;under&quot;)$data
+    b.train.x &lt;- data.balanced[,-1] %&gt;% as.matrix()
+    b.train.y &lt;- data.balanced[,1] %&gt;% as.matrix()
+    folds &lt;- createFolds(factor(b.train.y), k = 10, list = T)
+    auc_value_combine &lt;- .model_function_Total(importance=F,auc=T)
+    #print(paste0(f,&quot; variables - &quot;, i, &quot;%&quot;))
+  }
+  
+  auc_new &lt;- auc_value_combine %&gt;% mean()
+  auc_sd &lt;- auc_value_combine %&gt;% sd()
+  auc.comb &lt;- rbind(auc.comb, data.frame(auc_new, auc_sd,model=f))
+}
+feature_select &lt;- feature_select[1 : which.max(auc.comb$auc_new)] %&gt;% 
+  as.character()
+saveRDS(feature_select, &quot;./feature_select.rds&quot;)</code></pre>
+<p>Check the variables in the final model</p>
+<pre class="r"><code>feature_select &lt;- readRDS(&quot;./feature_select.rds&quot;)
+print(feature_select)</code></pre>
+<p>Finally, we trained the dataset (re-sampled) and predicted.</p>
+<pre class="r"><code>temp &lt;- cbind(data.train.y, 
+                data.train.x[, feature_select]) %&gt;% as.data.frame()
+data.balanced &lt;- ovun.sample(.data_Yes~., data = temp, p = 0.33, 
+                                seed = 199609, method = &quot;under&quot;)$data
+dtrain &lt;- xgb.DMatrix(data = data.balanced[,-1] %&gt;% as.matrix(),
+                      label= data.balanced[,1] %&gt;% as.matrix())
+dtest &lt;- xgb.DMatrix(data = data.test.x[, feature_select] %&gt;% as.matrix(),
+                      label= data.test.y %&gt;% as.matrix())
+model &lt;- xgboost(data = dtrain,
+                 nround = 500,
+                 early_stopping_rounds = 30,
+                 objective = &quot;binary:logistic&quot;, 
+                 eval_metric = &quot;logloss&quot;,
+                 verbose = 0)
+xgbpred &lt;- predict(model, dtest)
+saveRDS(xgbpred, &quot;./xgbpred.rds&quot;)</code></pre>
+<p>check the prediction results</p>
+<pre class="r"><code>xgbpred &lt;- readRDS(&quot;./xgbpred.rds&quot;)
+confusionMatrix(xgbpred %&gt;% round %&gt;% as.factor(), 
+                 data.test.y %&gt;% as.factor())</code></pre>
+</div>
+<div id="q2.3-comparation" class="section level3">
+<h3>Q2.3 Comparation</h3>
+<p>Compare model prediction performance on the test set.</p>
+<p>According to the confusion Matrix presented above, we found that the two models have similar performance. XGBoost model has a slightly higher overall accuracy (79%) and MLP model predict better for death_30 cases (69%). Both two models have a Balanced Accuracy at around 70%. Then we plotted Receiver Operating Characteristic (ROC) curves, which also suggests that two models have similar prediction pattern and AUC value.</p>
+<pre class="r"><code>rocmlp&lt;-roc(controls = results2[data.test.y==0],
+            cases = results2[data.test.y==1],
+            quiet = TRUE)
+rocxgs&lt;-roc(controls = xgbpred[data.test.y==0],
+            cases = xgbpred[data.test.y==1],
+            quiet = TRUE)
+
+plot(rocmlp, col = &quot;dark blue&quot;, lty=1, lwd=2)
+plot(rocxgs, add = TRUE,col = &quot;orange&quot;, lty=1, lwd=2)
+legend(&quot;bottomright&quot;, legend=c(&quot;XGBoost (AUC:0.7821)&quot;,
+                              &quot;MLP (AUC:0.7715)&quot;),
+       col=c(&quot;orange&quot;, &quot;dark blue&quot;),
+       lty=1, lwd=2, cex=0.8, bty=&quot;n&quot;)</code></pre>
+<p><img src="/post/2021-03-20-data-science-practice-4/index.en-us_files/unnamed-chunk-21-1.png" /></p>
+</div>
+</div>

@@ -2,17 +2,21 @@
 title: Survival analysis using Cox regression
 author: Zian ZHUANG
 date: '2021-03-20'
-slug: index.en-us
+slug: Survival analysis using Cox regression
 categories:
   - Methodology
-header-includes:
-   - \usepackage{bbm}
+header-includes: 
+  - \usepackage{bbm}
 tags:
-  - Bayesian
   - Survival analysis
+  - Bayesian
 keywords:
   - tech
+comments: no
+showMeta: no
+showActions: no
 ---
+
 Bayesian joint modeling of longitudinal and time-to-event data with missing values
 <!--more-->
 

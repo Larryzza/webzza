@@ -32,6 +32,8 @@ showActions: no
 
 6. He D, Zhao S, Lin Q, **Zhuang Z**, Cao P, Wang MH, et al. The relative transmissibility of asymptomatic COVID-19 infections among close contacts. *International Journal of Infectious Diseases*. 2020;94:145-7.
 
+7. Musa SS, Zhao S, Hussaini N, **Zhuang Z**, Wu Y, Abdulhamid A, et al. Estimation of COVID-19 under-ascertainment in Kano, Nigeria during the early phase of the epidemics. *Alexandria Engineering Journal*. 2021.
+
 3. Ge J, He D, Lin Z, Zhu H, **Zhuang Z**. Four-tier response system and spatial propagation of COVID-19 in China by a network model. *Mathematical Biosciences*. 2020;330:108484.
 
 8. Yang S, Cao P, Du P, Wu Z, **Zhuang Z**, Yang L, et al. Early estimation of the case fatality rate of COVID-19 in mainland China: a data-driven analysis. *Annals of Translational Medicine*. 2020;8(4).

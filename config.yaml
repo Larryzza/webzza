@@ -74,6 +74,7 @@ menu:
       weight: 6
 
 params:
+  math: true
   autoThumbnailImage: yes
   clearReading: yes
   coverImage: images/cover2.jpg

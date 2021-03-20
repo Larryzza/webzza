@@ -15,7 +15,7 @@ showMeta: no
 showActions: no
 ---
 
-linear regression with random effects
+linear regression with random effects (Bayesian)
 <!--more-->
 
 # Goals of analysis

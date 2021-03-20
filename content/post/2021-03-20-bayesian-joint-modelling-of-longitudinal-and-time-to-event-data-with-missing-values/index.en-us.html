@@ -1,0 +1,54 @@
+---
+title: Survival analysis using Cox regression
+author: Zian ZHUANG
+date: '2021-03-20'
+slug: index.en-us
+categories:
+  - Methodology
+header-includes:
+   - \usepackage{bbm}
+tags:
+  - Bayesian
+  - Survival analysis
+keywords:
+  - tech
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>Bayesian joint modeling of longitudinal and time-to-event data with missing values
+<!--more--></p>
+<p>When we analyze the longitudinal sequences measurements and time-to-event data, the response variable is time dependent. Given the situation that the distributions of length of time-to-event are usually heavily skewed, it cannot be added in a simple linear model directly. The Cox proportional hazards model consider the survival time and is more robust for various types of data distributions. Thus, Bayesian Cox proportional hazards model is suitable to analyze such kind of data.</p>
+<p>We analyzed a dataset of 2,971 patients, who were admitted into the Huoshenshan Hospital (HH) in Wuhan, China, during 4 February to 24 March 2020. We obtained the patients’ longitudinal sequences blood test measurements.
+Response variable <span class="math inline">\(dN_it\)</span> counts the number of death as they occur for individuals at time <span class="math inline">\(t\)</span>. If patient <span class="math inline">\(i\)</span> is observed to die during the time interval <span class="math inline">\([t,t+dt)\)</span>, <span class="math inline">\(dN_it\)</span> would be 1, otherwise <span class="math inline">\(dN_it\)</span> equals 0. Predictor variables are three lab measurements: lactic dehydrogenase (LDH), lymphocyte and high-sensitivity C-reactive protein (hs-CRP). Table 1 presents the descriptive statistics of three bio-markers, stratified by the corresponding status of patients.</p>
+<p>In the model, response variable is assumed to be Poisson distributed (Equation 1). The corresponding intensity process for <span class="math inline">\(dN_it\)</span> is defined as <span class="math inline">\(I_i(t)dt\)</span>. Indicator parameter <span class="math inline">\(Y_i(t)\)</span> has value 1 or 0, presenting that whether or not the data of patient <span class="math inline">\(i\)</span> is observed at time <span class="math inline">\(t\)</span>. Constant parameters <span class="math inline">\(\beta_1, \beta_2, \beta_3\)</span> are regression coefficients for three bio-markers and assumed to be normal distributed independently. Variables <span class="math inline">\(X_1,X_2,X_3\)</span> contain the observed values of three bio-markers we selected. Parameter <span class="math inline">\(d\Lambda_0(t)\)</span> is the increments of baseline conditional instantaneous mortality rate at time interval <span class="math inline">\([t,t+dt)\)</span>, i.e. the mortality rate for a survival patient at time interval <span class="math inline">\([t,t+dt)\)</span> when all of bio-markers <span class="math inline">\(X_1,X_2,X_3\)</span> equal 0. In some ways, parameter <span class="math inline">\(d\Lambda_0(t)\)</span> is similar as the random effect term <span class="math inline">\(\beta_i\)</span> for individuals <span class="math inline">\(i\)</span> in the random effects model, while ‘individual’ for <span class="math inline">\(d\Lambda_0(t)\)</span> in the cox regression is each time interval <span class="math inline">\([t,t+dt)\)</span>. We assumed the increments of baseline conditional instantaneous mortality rate gamma distributed at every time interval <span class="math inline">\([t,t+dt)\)</span> (Equation 3), which is suggested by Kalbfleisch. Here, <span class="math inline">\(d\Lambda_0^*(t)\)</span> represents a prior guess at the unknown <span class="math inline">\(d\Lambda_0(t)\)</span>, with <span class="math inline">\(c\)</span>
+representing the degree of confidence in this guess. Constant <span class="math inline">\(r\)</span> is a guess at the mortality rate per time interval <span class="math inline">\([t,t+dt)\)</span>. Note that if we take the same length of time interval <span class="math inline">\(dt\)</span>, then every <span class="math inline">\(d\Lambda_0(t)\)</span> will have same distribution <span class="math inline">\(\text{Gamma}(cd\Lambda_0^*(t), c)\)</span> because <span class="math inline">\(d\Lambda_0^*(t)=rdt\)</span> and <span class="math inline">\(r\)</span> is a constant.</p>
+<p><span class="math display">\[\begin{equation}
+    dN_i(t) \sim \text{Poisson}(I_i(t)dt), i=1,2,3...
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+    I_i(t)dt=Y_i(t)exp(\beta_1X_1+\beta_2X_2+ \beta_3X_3)d\Lambda_0(t)
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+   d\Lambda_0(t) \sim \text{Gamma}(cd\Lambda_0^*(t), c)
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+   d\Lambda_0^*(t) = rdt
+\end{equation}\]</span></p>
+<p>Since some patients do not have blood test results for all three bio-markers, we handled missing values in longitudinal data with multiple imputation. We treated missing value as random variables and built a multivariate normal random intercept and slope model to link the observed data and unknown parameters. As shown in Eqn <span class="math inline">\(5\sim7\)</span>, <span class="math inline">\(i,j\)</span> represents patient <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>th observations within person, respectively. Variable <span class="math inline">\(t_{ij}\)</span> is the time of the observation and variables <span class="math inline">\(X_{1ij},X_{2ij},X_{3ij}\)</span> are the blood test results for three bio-markers at time <span class="math inline">\(t_{ij}\)</span>. Fix effects <span class="math inline">\(\alpha_1,\alpha_2,\alpha_3\)</span>, residual variances <span class="math inline">\(\epsilon_{1ij},\epsilon_{2ij}\)</span> and marginal variance <span class="math inline">\(\epsilon_{3ij}\)</span> are assumed normal distributed independently. Random intercept <span class="math inline">\(\beta_{intercept.i.1},\beta_{intercept.i.2},\beta_{intercept.i.3}\)</span> and random slope <span class="math inline">\(\beta_{slope.i.1}, \beta_{slope.i.2}, \beta_{slope.i.3}\)</span> are are assumed to follow the multivariate normal distribution, which have an 6*6 inverse Wishart prior <span class="math inline">\(D\)</span> (Eqn 8). Then we used a Bayesian method to estimate the unknown random variables, provided that those values are part of the joint model.</p>
+<p><span class="math display">\[\begin{equation}
+   X_{1ij} = \alpha_1 X_{2ij}+\alpha_2X_{3ij}+\beta_{intercept.i.1}+\beta_{slope.i.1}*t_{ij}+\epsilon_{1ij}
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+   X_{2ij} = \alpha_3 X_{3ij}+\beta_{intercept.i.2}+\beta_{slope.i.2}*t_{ij}+\epsilon_{2ij}
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+  X_{3ij} = \beta_{intercept.i.3}+\beta_{slope.i.3}*t_{ij}+\epsilon_{3ij}
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+  (\beta_{intercept.i.1},\beta_{intercept.i.2},\beta_{intercept.i.3},\beta_{slope.i.1}, \beta_{slope.i.2}, \beta_{slope.i.3}) \sim N(0, D)
+\end{equation}\]</span></p>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "all"} } });
+  </script>

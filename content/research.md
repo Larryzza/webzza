@@ -11,7 +11,3 @@ showActions: no
 ### Machine learning model study
 
 Designed an interpretable prediction model based on XGBoost algorithm to identify the most robust and meaningful biomarkers of TB-DILI, by analyzing the cumulative drug use, liver function test results, age, gender, education level, income, BMI and other factors.
-
-### Bayesain method study
-
-Random effect logit model based on the bayesain method

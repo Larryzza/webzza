@@ -1,7 +1,7 @@
 baseURL: /
 languageCode: en-us
 defaultContentLanguage: en-us
-title: 
+title: Zian ZHUANG
 theme: hugo-tranquilpeak-theme
 disqusShortname: hugo-tranquilpeak-theme
 paginate: 7
@@ -12,7 +12,7 @@ taxonomies:
   archive: archives
   category: categories
   tag: tags
-author:
+author: Zian ZHUANG
   bio: Biostat & Biomath
   gravatarEmail: larry.zhuangzian@gmail.com
   job: UCLA public health

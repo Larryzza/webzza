@@ -1,5 +1,5 @@
 ---
-title: Effectiveness of Mindfulness Awareness Practices (MAPs) intervention
+title: Effectiveness of Mindfulness Awareness Practices intervention
 author: Zian Zhuang
 date: '2021-03-25'
 slug: Mindfulness Awareness Practices (MAPs)
@@ -32,3 +32,15 @@ Table 1 presents the summary of participants’ demographic characteristics, med
 Table 2 shows the summary of hierarchical linear regression analysis of Epidemiologic Studies-Depression (CES-D) at baseline. In step 1 of hierarchical multiple linear regression analyses, age at baseline was shown to have a significantly negative correlation with CES-D (p = .016), and married individuals also appeared to have a significantly lower CES-D (p = .003). In Step 2 of the multiple regression analyses, after adding mastectomy and neoadjuvant chemotherapy status to the model, age at baseline test (p = .018) and marital status (p = .004) were still associated with CES-D significantly. In step 3, after including baseline Insomnia Severity Index (ISI) and Fatigue Severity Index (FSI) to the model, the addition of the two variables was shown to be significant in the model according to a partial F-test (p < .001). In addition, baseline FSI was positively associated with baseline CES-D significantly (p < .001), and ISI at baseline also appeared to have a significantly positive correlation with baseline CES-D (p = .009). Model 3 also indicated that age at baseline (p =.018) and marital status (p < .001) remained significant, when additionally controlling for baseline FSI and ISI.
 
 In total, 21 (12.65%) participants were inevaluable at follow-up due to missing or invalid outcome data (CES-D at follow up). Since there were no significant differences between participants who lost to follow-up and participants who finished the entire study at baseline, we only controlled for the baseline CES-D in the outcome analysis. The analysis indicated that the participants in the intervention group had mean CES-D that were 4.04 (SE = 1.38) points lower than the control group, controlling for baseline CES-D (p = .004). As for the model diagnostics, the residuals were left skewed sightly (Figure S1) and conditional means did not follows a line (Figure S2), while variances were largely constant (Figure S2). Figure S3 shows the model’s studentized residual, leverage and Cook's distance by id, indicating that indicating that there is likely a small number of outliers.
+
+# Appendix
+
+![](/post/2021-03-25-mindfulness-awareness-practices-maps/index.en-us_files/f1.png)
+
+![](/post/2021-03-25-mindfulness-awareness-practices-maps/index.en-us_files/f11.png)
+![](/post/2021-03-25-mindfulness-awareness-practices-maps/index.en-us_files/f.png)
+
+![](/post/2021-03-25-mindfulness-awareness-practices-maps/index.en-us_files/f2.png)
+
+![](/post/2021-03-25-mindfulness-awareness-practices-maps/index.en-us_files/ff1.png)
+![](/post/2021-03-25-mindfulness-awareness-practices-maps/index.en-us_files/ff2.png)

@@ -1,7 +1,7 @@
 ---
 title: Data science practice 1
 author: Zian ZHUANG
-date: '2021-03-7'
+date: '2021-03-9'
 slug: Data science practice 1
 categories:
   - Data science
@@ -9,9 +9,7 @@ tags:
   - practice
 keywords:
   - tech
-comments: no
-showMeta: no
-showActions: no
+comments: no 
 ---
 Linux Shell
 <!--more-->

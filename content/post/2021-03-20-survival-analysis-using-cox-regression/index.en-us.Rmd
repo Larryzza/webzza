@@ -13,8 +13,6 @@ tags:
 keywords:
   - tech
 comments: no
-showMeta: no
-showActions: no
 ---
 
 Bayesian joint modeling of longitudinal and time-to-event data with missing values

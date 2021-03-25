@@ -4,15 +4,13 @@ author: Zian ZHUANG
 date: '2021-03-15'
 slug: Nurse's Blood Pressure Study
 categories:
-  - Cases
+  - Simple case study
 tags:
   - Bayesian
   - Random effect model
 keywords:
   - tech
 comments: no
-showMeta: no
-showActions: no
 ---
 
 linear regression with random effects (Bayesian)

@@ -15,7 +15,7 @@ keywords:
   - tech
 comments: no
 ---
-Joint modeling of Bayesian case SEIR (velocity) model with random forest
+A paper about joint modeling of Bayesian case SEIR (velocity) model with random forest
 <!--more-->
 
 [This paper](https://doi.org/10.1101/2020.05.15.20102608) build a SEIR model to forecast the COVID cases, applying the Bayesian method [Markov chain Monte Carlo (MCMC)] to estimated the parameters. Instead of using $R_0$ in the likelihood function, this model defined a parameter `velocity`, which represents capacity to infect (the increment of cumulative cases during a time period), similar as $R_0$. I presume that defining a new parameter here is for the converging purpose. When estimating the parameters in a SEIR model, a proper prior distribution and range would contribute significantly to the convergence of estimates. In addition, uncertainties are also considered in this model. Many papers, especially for SEIR models, did not consider uncertainties in prediction, which may lead decision makers to place undue confidence in their accuracy. 

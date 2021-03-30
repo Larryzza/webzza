@@ -29,9 +29,9 @@ ______________
 
 - Machine learning
 - Statistical computing
-- Survival analysis
+- Optimization
 - Bayesian methods
-
+- Survival analysis
 ______________
 
 #### SKILLS & INTERESTS:

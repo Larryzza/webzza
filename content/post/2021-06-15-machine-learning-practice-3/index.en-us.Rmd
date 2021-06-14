@@ -1,7 +1,7 @@
 ---
 title: Machine learning practice 3
 author: Zian ZHUANG
-date: '2021-06-15'
+date: '2021-06-01'
 slug: Machine learning practice 3
 categories:
   - Machine learning
@@ -20,9 +20,9 @@ comments: no
 ## Q1.
 (SVM, *20 pt*) In this problem, you will use support vector approaches in order to predict whether a given car gets high or low gas mileage based on the `Auto` data set.
 
-    ```{r, eval = FALSE}
-    data(Auto)
-    ```
+```{r, eval = FALSE}
+data(Auto)
+```
 
 ###    (a) 
 Create a binary variable that takes on a 1 for cars with gas mileage above the median, and a 0 for cars with gas mileage below the median.

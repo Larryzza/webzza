@@ -1,0 +1,323 @@
+---
+title: Immunologic response to liver allograft injury
+author: Zian ZHUANG
+date: '2021-05-20'
+slug: Immunologic response to liver allograft injury
+categories:
+  - Simple case study
+tags:
+  - logistic regression
+  - practice
+header-includes: 
+  - \usepackage{bbm}
+keywords:
+  - tech
+comments: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>case report
+<!--more--></p>
+<div id="i.-objective" class="section level2">
+<h2>I. Objective</h2>
+<p>in this research, we tried to determine what cytokines are different between IRI+ patients and IRI- patients before, during and after liver transplantation and how pre-transplant cytokines influence the occurrence of features indicative of IRI.</p>
+</div>
+<div id="ii.-statistical-hypothesises" class="section level2">
+<h2>II. Statistical hypothesis(es)</h2>
+<ul>
+<li>Some cytokines influence IRI individually at different time points.</li>
+<li>Cytokines can also influence IRI together.</li>
+<li>Pre-transplant cytokines are correlated with after-transplant NEC/INF scores.</li>
+</ul>
+</div>
+<div id="iii.-background-information" class="section level2">
+<h2>III. Background information</h2>
+<p>Ischemia-reperfusion injury (IRI), sometimes called reoxygenation injury, is the tissue damage caused when blood supply returns to tissue (re- + perfusion) after a period of ischemia or lack of oxygen (anoxia or hypoxia). IRI is considered common in organ transplantation, but will have a negative effect on the donated organ if the immune response elicited by IRI is bad enough.</p>
+<p>There are two main types of ways that the cells in the body communicate: cell-cell interactions and secreted proteins from one cell that are detected by another cell. These secreted proteins, or cytokines, are present in the blood of transplant patients and can influence the degree of inflammation that occurs during and after IRI. This makes cytokines a good candidate for use in diagnostics or therapies because blood samples are easy to obtain from patients (for a diagnostic test) and because it is easy for drugs and cytokines to interact when they are both in the blood (for successful treatment).</p>
+</div>
+<div id="iv.-sample-data-description" class="section level2">
+<h2>IV. Sample data description</h2>
+<p>The data we are analyzing here contains information of 100 patients in the study (42 IRI+, 58 IRI-) and expanded our analysis to include 23 cytokines total. The 23 cytokines were chosen in the sense that they have shown difference in at least one point in the previous study, which contained 53 liver transplant patients (26 IRI+, 27 IRI-).</p>
+<p>For each patient ID, three recordings were available (Stype: PO, LF, W1) corresponding to the cytokine levels before, during and after the transplantation. There are two characteristics that doctors combine to determine whether a patient is IRI+ or IRI-: (1) amount of immune cells in the liver after transplant and (2) amount of dead cells in the liver after transplant. Each is scored on an integer scale from 0-4, with 4 being the most severe. Those two scores were then combined to determine whether the patient had the disease.</p>
+<p>Note that for the cytokines level, in the experiments we got certain thershold of the recorded values due to technology barriers. For instance, CYTO17 were recorded as &lt;T where T was the threshold for that particular dish which would differ from each run. We simply took the threshold value for those recordings.</p>
+<p>In the following section, we tried to visualize the sample data.</p>
+<pre class="r"><code>#data processing
+df &lt;- read.csv(&quot;402df.csv&quot;)
+df_visual &lt;- df %&gt;% select(CYTO1:CYTO23) 
+df &lt;- df %&gt;% mutate(IRI=as.factor(IRI))
+
+#scale the data
+df[,paste0(&quot;CYTO&quot;,c(1:23))] &lt;- scale(df[,paste0(&quot;CYTO&quot;,c(1:23))])
+
+#df[,paste0(&quot;CYTO&quot;,c(1:23))] &lt;- log(df[,paste0(&quot;CYTO&quot;,c(1:23))])
+
+# get difference between measures
+df_dif &lt;- df
+df_dif[which(df_dif$Stype==&quot;PO&quot;), paste0(&quot;CYTO&quot;,c(1:23))] &lt;-
+  df_dif[which(df_dif$Stype==&quot;LF&quot;), paste0(&quot;CYTO&quot;,c(1:23))] - 
+  df_dif[which(df_dif$Stype==&quot;PO&quot;), paste0(&quot;CYTO&quot;,c(1:23))]
+df_dif[which(df_dif$Stype==&quot;LF&quot;), paste0(&quot;CYTO&quot;,c(1:23))] &lt;-
+  df_dif[which(df_dif$Stype==&quot;W1&quot;), paste0(&quot;CYTO&quot;,c(1:23))] - 
+  df_dif[which(df_dif$Stype==&quot;LF&quot;), paste0(&quot;CYTO&quot;,c(1:23))]
+df_dif[which(df_dif$Stype==&quot;W1&quot;), paste0(&quot;CYTO&quot;,c(1:23))] &lt;-
+  df_dif[which(df_dif$Stype==&quot;W1&quot;), paste0(&quot;CYTO&quot;,c(1:23))] - 
+  df_dif[which(df_dif$Stype==&quot;PO&quot;), paste0(&quot;CYTO&quot;,c(1:23))]
+
+df_dif$Stype[which(df_dif$Stype==&quot;W1&quot;)] &lt;- &quot;W1-PO&quot;
+df_dif$Stype[which(df_dif$Stype==&quot;LF&quot;)] &lt;- &quot;W1-LF&quot;
+df_dif$Stype[which(df_dif$Stype==&quot;PO&quot;)] &lt;- &quot;LF-PO&quot;
+
+df_hm &lt;- df %&gt;% rbind(df_dif) %&gt;%
+  mutate(Stype_iri=paste0(Stype,&quot;_&quot;,IRI)) %&gt;%
+  group_by(Stype_iri) %&gt;%
+  summarise_at(paste0(&quot;CYTO&quot;,c(1:23)), median, na.rm = TRUE) %&gt;%
+  remove_rownames(.) %&gt;%
+  column_to_rownames(&quot;Stype_iri&quot;) </code></pre>
+<p>We applied hierarchical clustering to identify cytokine patterns. Hierarchical clustering analysis used euclidean distance and the agglomeration method was ward.D. Note that we stratifies the cytokine value by IRI status (1 = +, 0 = -) and test time points (<code>PO</code>, <code>LF</code>, <code>W1</code>). In addition, we also include the difference of cytokine value between any two time points in the analysis (<code>LF-PO</code>, <code>W1-LF</code>, <code>W1-PO</code>).</p>
+<pre class="r"><code>pheatmap(t(df_hm), cutree_rows = 3)</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig15.png" /></p>
+<p>The rows of above heatmap shows 23 cytokines, the columns represent IRI status at different time point. The colors represent normalized median cytokine values (blue = low, red = high). The rows and columns are ordered based on the results of hierarchical clustering. Note that for illustration purpose, we set divided the rows into 3 clusters. As we can tell from the plot, the first cluster contained cytokine 13,2,6,7 and the second cluster contained only cytokine 23. Generally speaking, group with IRI has a higher normalized median cytokine levels in these two clusters. As for the cytokine 23, IRI+ group has larger difference of cytokine value between any two time points. The rest of cytokines are in the third cluster, which does not show a clear pattern.</p>
+<p>Then we plot the histogram of INF and NEC values, grouped by IRI status</p>
+<pre class="r"><code>ggplot(df, aes(x=INF, color=IRI)) +
+  geom_histogram(fill=&quot;white&quot;, position=&quot;dodge&quot;) + theme_bw()</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig16.png" /></p>
+<pre class="r"><code>ggplot(df, aes(x=NEC, color=IRI)) +
+  geom_histogram(fill=&quot;white&quot;, position=&quot;dodge&quot;) + theme_bw()</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig17.png" /></p>
+<p>We can tell from the plots that most of IRI+ patients have a 2 INF level and 2 NEC level. Most of IRI- patients have a 1 INF level and 1 NEC level.</p>
+</div>
+<div id="v.-variable-assessment" class="section level2">
+<h2>V. Variable assessment</h2>
+<div id="v.i-log-transformation" class="section level3">
+<h3>V.I Log-transformation</h3>
+<pre class="r"><code>df1 &lt;- read.csv(&quot;402df.csv&quot;)
+
+par(mfrow = c(3, 3))
+hist(df1$CYTO1, main=&quot;CYTO1&quot;)
+hist(df1$CYTO2, main=&quot;CYTO2&quot;)
+hist(df1$CYTO3, main=&quot;CYTO3&quot;)
+hist(df1$CYTO10, main=&quot;CYTO10&quot;)
+hist(df1$CYTO11, main=&quot;CYTO11&quot;)
+hist(df1$CYTO12, main=&quot;CYTO12&quot;)
+hist(df1$CYTO18, main=&quot;CYTO18&quot;)
+hist(df1$CYTO19, main=&quot;CYTO19&quot;)
+hist(df1$CYTO20, main=&quot;CYTO20&quot;)</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig18.png" /></p>
+<p>As we can see from the histograms of some of the histograms, there is a strong right skewness for all of the cytokine levels. Therefore, there exist a motivation to log-transform the data.</p>
+<pre class="r"><code>cols &lt;- c(&quot;CYTO1&quot;,&quot;CYTO2&quot;, &quot;CYTO3&quot;,&quot;CYTO4&quot;, &quot;CYTO5&quot;,&quot;CYTO6&quot;, &quot;CYTO7&quot;,&quot;CYTO8&quot;,
+          &quot;CYTO9&quot;,&quot;CYTO10&quot;, &quot;CYTO11&quot;,&quot;CYTO12&quot;, &quot;CYTO13&quot;,&quot;CYTO14&quot;, &quot;CYTO15&quot;,&quot;CYTO16&quot;,
+          &quot;CYTO17&quot;,&quot;CYTO18&quot;, &quot;CYTO19&quot;,&quot;CYTO20&quot;, &quot;CYTO21&quot;,&quot;CYTO22&quot;, &quot;CYTO23&quot;)
+df1[cols] &lt;- log(df1[cols])
+
+par(mfrow = c(3, 3))
+hist(df1$CYTO1, main=&quot;CYTO1&quot;)
+hist(df1$CYTO2, main=&quot;CYTO2&quot;)
+hist(df1$CYTO3, main=&quot;CYTO3&quot;)
+hist(df1$CYTO10, main=&quot;CYTO10&quot;)
+hist(df1$CYTO11, main=&quot;CYTO11&quot;)
+hist(df1$CYTO12, main=&quot;CYTO12&quot;)
+hist(df1$CYTO18, main=&quot;CYTO18&quot;)
+hist(df1$CYTO19, main=&quot;CYTO19&quot;)
+hist(df1$CYTO20, main=&quot;CYTO20&quot;)</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig19.png" /></p>
+<p>Now the selected histograms have improved significantly. We are going to proceed out analysis with the transformed dataset.</p>
+</div>
+<div id="v.ii-wilcoxon-test" class="section level3">
+<h3>V.II Wilcoxon test</h3>
+<pre class="r"><code>#Prepare data
+df &lt;- read.csv(&quot;402df.csv&quot;)
+df_visual &lt;- df %&gt;% select(CYTO1:CYTO23) 
+df &lt;- df %&gt;% mutate(IRI=as.factor(IRI))
+df[,paste0(&quot;CYTO&quot;,c(1:23))] &lt;- log(df[,paste0(&quot;CYTO&quot;,c(1:23))])
+df_dif &lt;- df
+df_dif[which(df_dif$Stype==&quot;PO&quot;), paste0(&quot;CYTO&quot;,c(1:23))] &lt;-
+  df_dif[which(df_dif$Stype==&quot;LF&quot;), paste0(&quot;CYTO&quot;,c(1:23))] - 
+  df_dif[which(df_dif$Stype==&quot;PO&quot;), paste0(&quot;CYTO&quot;,c(1:23))]
+df_dif[which(df_dif$Stype==&quot;LF&quot;), paste0(&quot;CYTO&quot;,c(1:23))] &lt;-
+  df_dif[which(df_dif$Stype==&quot;W1&quot;), paste0(&quot;CYTO&quot;,c(1:23))] - 
+  df_dif[which(df_dif$Stype==&quot;LF&quot;), paste0(&quot;CYTO&quot;,c(1:23))]
+df_dif[which(df_dif$Stype==&quot;W1&quot;), paste0(&quot;CYTO&quot;,c(1:23))] &lt;-
+  df_dif[which(df_dif$Stype==&quot;W1&quot;), paste0(&quot;CYTO&quot;,c(1:23))] - 
+  df_dif[which(df_dif$Stype==&quot;PO&quot;), paste0(&quot;CYTO&quot;,c(1:23))]
+df_dif$Stype[which(df_dif$Stype==&quot;W1&quot;)] &lt;- &quot;W1-PO&quot;
+df_dif$Stype[which(df_dif$Stype==&quot;LF&quot;)] &lt;- &quot;W1-LF&quot;
+df_dif$Stype[which(df_dif$Stype==&quot;PO&quot;)] &lt;- &quot;LF-PO&quot;</code></pre>
+<p>Firstly, we evaluated each cytokine for its correlation with IRI outcome individually based on the Wilcoxon nonparametric rank-sum test.</p>
+<pre class="r"><code># Wilcoxon nonparametric rank-sum test
+df_test &lt;- rbind(df, df_dif)
+stat.test &lt;- NULL
+for(k in paste0(&quot;CYTO&quot;,c(1:23))){
+  for(i in unique(df_test$Stype)){
+  temp &lt;- df_test %&gt;%
+    filter(Stype==i) %&gt;%
+    rename(&quot;CYTO&quot; = k) %&gt;%
+    wilcox_test(CYTO ~ IRI) %&gt;%
+    add_significance() %&gt;%
+    mutate(Stype=i,var=k)
+  stat.test &lt;- rbind(stat.test, temp)
+  }
+}
+
+stat.test[,-1] %&gt;% 
+  select(var, Stype, group1:p.signif) %&gt;%
+  filter(p.signif!=&quot;ns&quot;) %&gt;%
+  kbl() %&gt;%
+  kable_classic(full_width = F, html_font = &quot;Cambria&quot;)</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig20.png" /></p>
+<p>As we can tell from the summary table, CYTO16 value in <code>W1</code> stage and the change of CYTO16 value between <code>W1</code> and <code>LF</code> stage are significant different between IRI+ and IRI- groups. In addition, CYTO22 value in <code>LF</code> stage are significant different between IRI+ and IRI- groups.</p>
+</div>
+</div>
+<div id="vi.-analysis-of-data-set" class="section level2">
+<h2>VI. Analysis of data set</h2>
+<div id="vi.i-main-effects" class="section level3">
+<h3>VI.I Main effects</h3>
+<pre class="r"><code># Data preparation
+df_1 &lt;- df1 %&gt;% 
+  group_by(PID) %&gt;% 
+  filter(Stype == &#39;PO&#39;) %&gt;%
+  select(c(4, 8:30))
+
+df_2 &lt;- df1 %&gt;% 
+  group_by(PID) %&gt;% 
+  filter(Stype == &#39;LF&#39;) %&gt;%
+  select(c(4, 8:30))
+
+df_3 &lt;- df1 %&gt;% 
+  group_by(PID) %&gt;% 
+  filter(Stype == &#39;W1&#39;) %&gt;%
+  select(c(4, 8:30))
+
+# Get their differences for each patient
+df_1num &lt;- df_1[, 4:25]
+df_2num &lt;- df_2[, 4:25]
+df_3num &lt;- df_3[, 4:25]
+diff1 &lt;- df_2num - df_1num
+diff2 &lt;- df_3num - df_2num
+diff3 &lt;- df_3num - df_1num
+
+df_diff1 &lt;- df_1
+df_diff1[, 4:25] &lt;- diff1
+
+df_diff2 &lt;- df_1
+df_diff2[, 4:25] &lt;- diff2
+
+df_diff3 &lt;- df_1
+df_diff3[, 4:25] &lt;- diff3</code></pre>
+<p>Then we can fit the model with main effects only:</p>
+<pre class="r"><code># Before
+mod1_before &lt;- glm(IRI ~ .-PID, family = binomial, df_1)
+  # No significant cytokine
+
+# During
+mod1_during &lt;- glm(IRI ~ .-PID, family = binomial, df_2)
+  # CTYO01, 02, 014 were significant
+
+# After
+mod1_after &lt;- glm(IRI ~ .-PID, family = binomial, df_3)
+  # CTYO22
+
+# Difference 1
+mod1_diff1 &lt;- glm(IRI ~ .-PID, family = binomial, df_diff1)
+  # CTYO04, 09, 014 were significant
+
+# Difference 2
+mod1_diff2 &lt;- glm(IRI ~ .-PID, family = binomial, df_diff2)
+    # CTYO09
+
+# Difference 3
+mod1_diff3 &lt;- glm(IRI ~ .-PID, family = binomial, df_diff3)
+  # No significant cytokine</code></pre>
+<p>After fitting the logistic models with only the main effect, CTYO01, 02, 09, 014, 022 have shown significance.</p>
+</div>
+<div id="vi.ii-with-interactions" class="section level3">
+<h3>VI.II With interactions</h3>
+<p>Then we include all the two-way interactions between cytokines to test whether cytokines influence IRI together. In order to arrive at a more parsimonious model, we simplified the model by a elastic net selection algorithm. Elastic net linear regression applied the penalties that from both the lasso and ridge techniques to regularize regression models. It combines both the lasso and ridge regression methods and improve the shortcomings of these two methods. The technique is appropriate where the dimensional data is greater than the number of samples used. Note that we build the model based on each Stype (<code>PO</code>, <code>LF</code>, <code>W1</code>, <code>LF-PO</code>, <code>W1-LF</code>, <code>W1-PO</code>) independently.</p>
+<pre class="r"><code># log the data
+df_test2 &lt;- model.matrix(~.^2-1,df_test[,paste0(&quot;CYTO&quot;,c(1:23))])
+glm_results &lt;- NULL
+for(i in unique(df_test$Stype)){
+  # logit regression
+  set.seed(1996)
+  
+  y &lt;- df_test %&gt;% filter(Stype==i) %&gt;% select(IRI) %&gt;% as.matrix
+  x &lt;- df_test2[which(df_test$Stype==i),] %&gt;% as.matrix
+   
+  cv.lasso &lt;- cv.glmnet(x, y, family = &quot;binomial&quot;)
+  #plot(cv.lasso)
+  model &lt;- glmnet(x, y, family = &quot;binomial&quot;,
+                  lambda = cv.lasso$lambda.1se)
+  ind &lt;- abs(coef(model)[,ncol(coef(model))])&gt;0.000000000
+  vars.selected &lt;- rownames(coef(model))[ind]
+  vars.selected &lt;- vars.selected[-which(vars.selected == &quot;(Intercept)&quot;)]
+  
+  df_final &lt;- data.frame(as.numeric(y), x[,vars.selected]) 
+  names(df_final) &lt;- c(&quot;y&quot;, vars.selected)
+  glm(y~., data=df_final, 
+      family=binomial) %&gt;% summary %&gt;%
+    .$coefficients %&gt;% as.data.frame -&gt; temp
+  temp$var &lt;- row.names(temp)
+  glm_results &lt;- rbind(glm_results, data.frame(Stype=i, temp))
+}
+colnames(glm_results)[c(3,5)] &lt;- c(&quot;sd&quot;,&quot;p-value&quot;)
+glm_results &lt;- glm_results[which(grepl(&quot;(Intercept)&quot;, 
+                                       row.names(glm_results))==F),]
+glm_results[,2:5] &lt;- glm_results[,2:5] %&gt;% round(3)
+row.names(glm_results)&lt;-NULL</code></pre>
+<p>Following is the summary table for models,</p>
+<pre class="r"><code>glm_results %&gt;%
+  select(&quot;var&quot;,&quot;Stype&quot;,&quot;Estimate&quot;,&quot;sd&quot;,&quot;z.value&quot;,&quot;p-value&quot;) %&gt;%
+  kbl() %&gt;%
+  kable_classic(full_width = F, html_font = &quot;Cambria&quot;)</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig21.png" /></p>
+<p>As we can tell from the model summary, CYTO23 is proved to be significant different between IRI+ and IRI- groups at <code>PO</code> stage (p = .035). CYTO22 appears to be different between IRI+ and IRI- groups at <code>LF</code> stage (p = .065). We also found that there exists significant interaction effect between the CYTO5 (change between <code>LF</code> and <code>PO</code> stage) and CYTO8 (change between <code>LF</code> and <code>PO</code> stage) between IRI+ and IRI- groups (p = .022). Interaction effect between the CYTO12 (change between <code>W1</code> and <code>LF</code> stage) and CYTO14 (change between <code>W1</code> and <code>LF</code> stage) between IRI+ and IRI- groups (p = .038) is also significant.</p>
+</div>
+<div id="vi.iii-necinf" class="section level3">
+<h3>VI.III NEC/INF</h3>
+<p>For the next section, we analyzied the correlation between re-transplant cytokines and after-transplant by spearman correlation</p>
+<pre class="r"><code>#data processing
+df &lt;- read.csv(&quot;402df.csv&quot;)
+df[,&quot;INF&quot;] &lt;- as.factor(df[,&quot;INF&quot;])
+df[,&quot;NEC&quot;] &lt;- as.factor(df[,&quot;NEC&quot;])
+pre_index &lt;- seq(1,300,3)
+after_index &lt;- seq(3,300,3)
+df_test &lt;- NULL
+df_test$INF_after &lt;- df[after_index,&quot;INF&quot;]
+df_test$NEC_after &lt;- df[after_index,&quot;NEC&quot;]
+df_test &lt;- cbind(df_test, df[pre_index,paste0(&quot;CYTO&quot;,c(1:23))])
+df_test[,paste0(&quot;CYTO&quot;,c(1:23))] &lt;- log(df_test[,paste0(&quot;CYTO&quot;,c(1:23))])</code></pre>
+<p>We apply the spearman correlation (<a href="https://doi.org/10.1186/s12979-019-0151-1">Koelman</a>) with INF and NEC as factors, we see no strong correlations between INF and NEC after transplant with Cytokines before transplant nor are they significant.</p>
+<pre class="r"><code>correlation::correlation(df_test[1:2], df_test[3:25], method = &quot;spearman&quot;,
+                         include_factors = TRUE)</code></pre>
+<p><img src="/post/2021-05-20-immunologic-response-to-liver-allograft-injury/index.en-us_files/fig22.png" /></p>
+<p>Visualize the correlation to see the weak correlations between cytokines and INF/NEC score.<br />
+Note here NEC and INC are treated as numeric variables.</p>
+<pre class="r"><code>df_test[,&quot;INF_after&quot;] &lt;- as.numeric(df_test[,&quot;INF_after&quot;])
+df_test[,&quot;NEC_after&quot;] &lt;- as.numeric(df_test[,&quot;NEC_after&quot;])
+corrplot(cor(df_test,method = &quot;spearman&quot;),
+  method = &quot;color&quot;)</code></pre>
+</div>
+</div>
+<div id="vii.-interpretation-of-results" class="section level2">
+<h2>VII. Interpretation of results</h2>
+<p>According to all the results above, we can conclude that,</p>
+<ul>
+<li>Cytokine 23 has significant influence on IRI individually at <code>PO</code> stage.</li>
+<li>Cytokine 01, 02, 14, 22 have significant influence on IRI individually at <code>LF</code> stage.</li>
+<li>Cytokine 16, 22 have significant influence on IRI individually at <code>W1</code> stage.</li>
+<li>Cytokine 4, 9, 14 have significant influence on IRI individually at <code>LF-PO</code> stage (change between <code>LF</code> and <code>PO</code> stage).</li>
+<li>Cytokine 9, 16 have significant influence on IRI individually at <code>W1-LF</code> stage (change between <code>W1</code> and <code>LF</code> stage).</li>
+<li>Interaction effect between the Cytokine 5 and 8 has significant influence on IRI individually at <code>LF-PO</code> stage (change between <code>LF</code> and <code>PO</code> stage).</li>
+<li>Interaction effect between the Cytokine 12 and 14 has significant influence on IRI individually at <code>W1-LF</code> stage (change between <code>W1</code> and <code>LF</code> stage).</li>
+<li>There is no significant correlation between pre-transplant cytokines and after-transplant NEC/INF.</li>
+</ul>
+</div>
+<div id="viii.-limitation" class="section level2">
+<h2>VIII. Limitation</h2>
+<ul>
+<li><p>Lack of the demographic data and clinical parameters, results may be affected by confounders.</p></li>
+<li><p>The results can be affected at individual level. If we could get more recordings from each patients, maybe we could fit random effects model to adjust for that.</p></li>
+<li><p>Further research (pathological) are needed to provide a solid conclusion about casual relationship between Cytokine and IRI status.</p></li>
+</ul>
+</div>

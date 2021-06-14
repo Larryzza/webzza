@@ -1,0 +1,347 @@
+---
+title: Coronary artery calcification case report
+author: Zian ZHUANG
+date: '2021-04-20'
+slug: Coronary artery calcification case report
+categories:
+  - Simple case study
+tags:
+  - practice
+  - hierarchical multiple linear regression
+header-includes: 
+  - \usepackage{bbm}
+keywords:
+  - tech
+comments: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>case report
+<!--more--></p>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>Past investigations of progression of coronary atherosclerosis have been limited primarily to angiographic studies of symptomatic patients. However, coronary atherosclerosis, can be present without clinical symptoms, and asymptomatic disease is not necessarily equivalent to mild disease.</p>
+<p><strong>Electron beam computed tomography(EBCT)</strong> is a method through which CAC can be detected and measured safely, noninvasively and at a relatively low cost.</p>
+<ul>
+<li>A quantitative measure that provides additional statistical power to detect risk factor associations</li>
+<li>Sensitive marker for angiographically defined coronary artery disease (CAD),</li>
+<li>Strongly associated with the maximal stenosis (the abnormal narrowing) in the epicardial arteries.</li>
+</ul>
+<div id="coronary-artery-disease-cad-and-coronary-artery-calcification-cac" class="section level3">
+<h3>Coronary Artery Disease (CAD) and Coronary Artery Calcification (CAC)</h3>
+<p><strong>Coronary artery disease (CAD)</strong> is the narrowing or blockage of the coronary arteries. This condition is usually caused by atherosclerosis. Atherosclerosis is the build-up of cholesterol and fatty deposits (called plaques) inside the arteries.</p>
+<ul>
+<li>Typical risk factors for CAD
+<ul>
+<li>Age</li>
+<li>Body size (BMI)</li>
+<li>Blood pressure (systolic)</li>
+<li>Lipid metabolism (HDL cholesterol)</li>
+<li>Cigarette smoking (self-report smoking status)</li>
+</ul></li>
+</ul>
+<p>Many comprehensive studies have identified risk factors for coronary artery disease (CAD). Yet, the total disease process is not fully understood, with 30-70 percent of CAD deaths not explained by established CAD risk factors.<br />
+<img src="https://www.mayoclinic.org/-/media/kcms/gbs/patient-consumer/images/2016/04/26/10/44/mcdc7_coronary-calcium-scan-8col.jpg" alt="Heart scan" /></p>
+<p><strong>Coronary artery calcification (CAC)</strong> is part of the atherosclerotic process and predicts future CAD morbidity and mortality in asymptomatic and symptomatic adults.
+Not every atherosclerotic plaque has calcification, but if calcification is present in the epicardial arteries it is almost always part of an atherosclerotic plaque.<br />
+<img src="https://www.mayoclinic.org/-/media/kcms/gbs/patient-consumer/images/2013/11/15/17/35/ds00525_-ds01120_-ds00064_-ds00178_-ds01052_-ds00537_-ds01179_im00642_ww5r236t_jpg.jpg" alt="Development of atherosclerosis" /></p>
+</div>
+<div id="measures-of-cac" class="section level3">
+<h3>Measures of CAC</h3>
+<p><strong>Calcium volume score</strong> - It is calculated by multiplying the number of voxels with calcification by the volume of each voxel, including all voxels with an attenuation &gt; 130 HU.</p>
+<p><strong>Agatston method</strong> - The Agatston method uses the weighted sum of lesions with a density above 130 HU, multiplying the area of calcium by a factor related to maximum plaque attenuation.</p>
+<p><strong>Relative calcium mass score</strong> - The relative calcium mass score is calculated by multiplying the mean attenuation of the calcified plaque by the plaque volume in each image, thus reducing the variation caused by the partial volume.</p>
+</div>
+<div id="research-hypothesis" class="section level3">
+<h3>Research Hypothesis</h3>
+<p>Investigating the relationship between gender and coronary artery calcification (CAC) in asymptomatic subjects. In particular, we are interested in whether the rate of change is higher among male than female.</p>
+</div>
+<div id="materials-and-methods" class="section level3">
+<h3>Materials and Methods</h3>
+<p>A retrospective study was performed on 217 asymptomatic subjects who underwent at least two EBCT studies for the detection of CAC. For the purpose of this study, asymptomatic was defined as having no history of documented ischemic heart disease including no abnormal electrocardiogram, stress test, or coronary angiogram, and no prior history of myocardial infarction or coronary bypass surgery. Standard EBCT acquisition protocols were followed and, from 30 to 40 contiguous axial images were obtained in a single breathhold to include the entire heart. Each study was scored for CAC volume using the default values of three or more contiguous pixels with density 130HU or greater in the expected location of an epicardial artery. The volume of each lesion was the product of the pixel area and the slice thickness. The sum of all lesion volumes yields the total calcium volume score (CVS) in units mm<span class="math inline">\(^3\)</span>.</p>
+</div>
+</div>
+<div id="descriptive-statistics" class="section level2">
+<h2>Descriptive statistics</h2>
+<pre class="r"><code>data &lt;- read_dta(&quot;cac.dta&quot;)
+data &lt;- data %&gt;% 
+  mutate(change_rate = (vol2 - vol1)/days) %&gt;%
+  mutate(rate_log = (log(vol2+25) - log(vol1+25))/days) %&gt;%
+  mutate(age_level = cut(data$age, breaks = seq(20,90,10)))
+female &lt;- data[which(data$sex == 0),]
+male &lt;- data[which(data$sex == 1),]
+
+data %&gt;% 
+  select(-c(nid, age)) %&gt;%
+  tbl_summary(
+    by = sex,
+    #statistic = list(c(&quot;vol1&quot;, &quot;vol2&quot;, &quot;days&quot;) ~ &quot;{mean} ({sd})&quot;),
+    digits = all_continuous() ~ 1,
+    missing_text = &quot;(Missing)&quot;,
+    label=list(change_rate~&quot;vol change rate&quot;)
+  ) %&gt;% add_p(pvalue_fun = ~style_pvalue(.x, digits = 2)) %&gt;% 
+  add_overall() %&gt;%
+  modify_header(label ~ &quot;**Variable**&quot;) %&gt;%
+  modify_spanning_header(c(&quot;stat_1&quot;, &quot;stat_2&quot;) ~ &quot;**Grouped by gender**&quot;)</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig1.png" /></p>
+<p>Note that we divided age by groups refering to previous <a href="https://academic.oup.com/aje/article/144/10/943/92669?login=true">research</a></p>
+<ul>
+<li><strong>some plots</strong></li>
+</ul>
+<pre class="r"><code>plot_ly(x = ~density(female$age)$x, y = ~density(female$age)$y, type = &#39;scatter&#39;, 
+        mode = &#39;lines&#39;, name = &#39;female&#39;, fill = &#39;tozeroy&#39;) %&gt;%
+  add_trace(x = ~density(male$age)$x, y = ~density(male$age)$y, 
+            name = &#39;male&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;Age&#39;),
+         yaxis = list(title = &#39;Density&#39;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig2.png" /></p>
+<pre class="r"><code>plot_ly(x = ~density(female$days)$x, y = ~density(female$days)$y, type = &#39;scatter&#39;, 
+        mode = &#39;lines&#39;, name = &#39;female&#39;, fill = &#39;tozeroy&#39;) %&gt;%
+  add_trace(x = ~density(male$days)$x, y = ~density(male$days)$y, 
+            name = &#39;male&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;days&#39;),
+         yaxis = list(title = &#39;Density&#39;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig3.png" /></p>
+<pre class="r"><code>plot_ly(x = ~density(female$vol1)$x, y = ~density(female$vol1)$y, 
+        type = &#39;scatter&#39;, mode = &#39;lines&#39;, 
+        name = &#39;female_vol1&#39;, fill = &#39;tozeroy&#39;) %&gt;%
+  add_trace(x = ~density(female$vol2)$x, y = ~density(female$vol2)$y, 
+            name = &#39;female_vol2&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  add_trace(x = ~density(male$vol1)$x, y = ~density(male$vol1)$y, 
+            name = &#39;male_vol1&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  add_trace(x = ~density(male$vol2)$x, y = ~density(male$vol2)$y, 
+            name = &#39;male_vol2&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;ct visit&#39;, type = &quot;log&quot;),
+         yaxis = list(title = &#39;Density&#39;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig4.png" /></p>
+<pre class="r"><code>plot_ly(x = ~female$vol1, type = &quot;box&quot;, name = &#39;female_vol1&#39;) %&gt;% 
+  add_trace(x = ~female$vol2, name = &#39;female_vol2&#39;) %&gt;% 
+  add_trace(x = ~male$vol1, name = &#39;male_vol1&#39;) %&gt;%
+  add_trace(x = ~male$vol2, name = &#39;male_vol2&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;ct visit chage rate&#39;, type = &quot;log&quot;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig5.png" /></p>
+<pre class="r"><code>plot_ly(x = ~density(female$change_rate)$x, 
+        y = ~density(female$change_rate)$y, 
+        type = &#39;scatter&#39;, mode = &#39;lines&#39;, 
+        name = &#39;female&#39;, fill = &#39;tozeroy&#39;) %&gt;%
+  add_trace(x = ~density(male$change_rate)$x, 
+            y = ~density(male$change_rate)$y, 
+            name = &#39;male&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;ct visit chage rate&#39;),
+         yaxis = list(title = &#39;Density&#39;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig6.png" /></p>
+<pre class="r"><code>plot_ly(x = ~density(female$rate_log)$x, 
+        y = ~density(female$rate_log)$y, 
+        type = &#39;scatter&#39;, mode = &#39;lines&#39;, 
+        name = &#39;female&#39;, fill = &#39;tozeroy&#39;) %&gt;%
+  add_trace(x = ~density(male$rate_log)$x, 
+            y = ~density(male$rate_log)$y, 
+            name = &#39;male&#39;, fill = &#39;tozeroy&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;ct visit chage rate&#39;),
+         yaxis = list(title = &#39;Density&#39;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig7.png" /></p>
+<pre class="r"><code>plot_ly(x = ~female$change_rate, type = &quot;box&quot;, name = &#39;female&#39;) %&gt;% 
+  add_trace(x = ~male$change_rate, name = &#39;male&#39;) %&gt;% 
+  layout(xaxis = list(title = &#39;ct visit chage rate&#39;))</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig8.png" /></p>
+</div>
+<div id="model" class="section level2">
+<h2>Model</h2>
+<pre class="r"><code># prepare data
+df1 &lt;- data %&gt;% 
+  mutate(rate = (vol2 - vol1)/days) %&gt;%
+  mutate(rate_log_p1 = (log(vol2+1) - log(vol1+1))/days,
+         rate_log_p5 = (log(vol2+5) - log(vol1+5))/days,
+         rate_log_p10 = (log(vol2+10) - log(vol1+10))/days,
+         rate_log_p20 = (log(vol2+20) - log(vol1+20))/days,
+         rate_log_p30 = (log(vol2+30) - log(vol1+30))/days,
+         rate_log_p40 = (log(vol2+40) - log(vol1+40))/days,
+         rate_log_p50 = (log(vol2+50) - log(vol1+50))/days) %&gt;%
+  mutate(age_level = cut(data$age, breaks = seq(20,90,10))) %&gt;%
+  mutate(nid = as.factor(nid))</code></pre>
+<div id="preliminary-analysis" class="section level3">
+<h3>Preliminary Analysis</h3>
+<p>Firstly, We did a preliminary test to see the difference of rate of CAC progression between male and female. Since the discriptive statistics suggested that rate of CAC progression is not normally distributed, similar as <a href="https://academic.oup.com/aje/article/144/10/943/92669">Maher <em>et al</em>.</a>, we conducted Wilcoxon rank sum test to see the difference of rate of CAC progression between male and female.</p>
+<pre class="r"><code>wilcox.test(df1$rate[which(df1$sex==0)], 
+            df1$rate[which(df1$sex==1)], paired = FALSE)</code></pre>
+<p>Result presents that the rate of CAC progression is significant different between female and male groups (p = .007).</p>
+</div>
+<div id="linear-model-original-scale" class="section level3">
+<h3>Linear model (original scale)</h3>
+<div id="study-sample" class="section level4">
+<h4>Study Sample</h4>
+<p>We analyzed all patients, including those who have a 0 CAC test score, since <a href="https://www.jacc.org/doi/full/10.1016/j.jcmg.2008.12.031">research</a> suggested that patients with a zero CAC score may also develop cardiovascular events.</p>
+</div>
+<div id="measurement-of-covariates" class="section level4">
+<h4>Measurement of Covariates</h4>
+<p>To avoid the potential nonlinearity relationship between age and CAC change rate, age was categorized with cut points selected empirically on the basis of
+<a href="https://academic.oup.com/aje/article/144/10/943/92669?login=true">past papers</a>. Following shows how we grouped patients by age:</p>
+<pre class="r"><code>levels(df1$age_level)</code></pre>
+<p>Then we constructed a linear model, adjusting for more risk factors. Following is the equation of the model,</p>
+<pre class="r"><code>(lm1 &lt;- lm(rate ~ (age_level + days + sex + vol1)^2  , data = df1))</code></pre>
+<p>where the <code>rate</code> is the change rate of CAS between two measurements <code>(rate = (vol2 - vol1)/days)</code>. Patients’ age group, first time CAS and days between two tests were included as covariates in the model, and interactions of each pair of risk factor were also tested.</p>
+<p>In order to arrive at a more parsimonious model, we simplified the model by a backward selection algorithm. The backward selection process started with all the candidate variables and sequentially removed variables to reach the best AIC value, beginning with the least significant variable.</p>
+<pre class="r"><code>model1 &lt;- step(lm1, direction = &quot;backward&quot;)
+summary(model1)</code></pre>
+<p>As we can tell from the model summary, sex is proved to be associated with rate of CAC progression significantly (p = .018). Males are tend to suffer from a higher rate of CAC progression than females, when controlling other factors. We also found that there exists significant interaction effect between sex and age groups. Male aged from 50 to 60 are estimated to have a higher rate of CAC progression than Male aged from 20 to 30 (reference group). In addition, males with a higher first time CAS are more likely to have a lower rate of CAC progression. Results seems counter-intuitive.</p>
+<div id="check-the-goodness-of-fit" class="section level5">
+<h5>check the goodness of fit</h5>
+<pre class="r"><code>par(mfrow = c(2, 2))
+plot(model1)</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig9.png" /></p>
+<p>As for the model diagnostics, the residuals were left skewed heavily, conditional means did not follows a horizontal line, and variances were not constant. According to the plots in the descriptive statistics, possible reason could be heavily skewed for the rate of CAC progression.</p>
+</div>
+</div>
+</div>
+<div id="linear-model-log-scale" class="section level3">
+<h3>Linear model (log scale)</h3>
+<p>Then we tried to process the data and do the follow up test. A common approach to deal with this problem is to exclude those with small values, say CAS&lt;20. However, this would have resulted in exclusion of 108 (49.8%) participants. As suggested by <a href="https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.106.674143">Kronmal <em>et al</em>.</a>, we expressed change in CAS as the change from baseline to follow-up in the form of log CAS plus a constant, like <code>log(vol2+20) - log(vol1+20)</code>. The constant was chosen to make change rate fairly symmetric and normally distributed. Following is the qq-plot that shows the distribution of CAS change rate, when we set different constants values.</p>
+<pre class="r"><code>.qqplot &lt;- function(x, m){
+  qqnorm(x, main = m)
+  qqline(x)
+}
+
+par(mfrow = c(2, 4))
+.qqplot(df1$rate,&quot;original&quot;)
+.qqplot(df1$rate_log_p1,&quot;constant = 1&quot;)
+.qqplot(df1$rate_log_p5,&quot;constant = 5&quot;)
+.qqplot(df1$rate_log_p10,&quot;constant = 10&quot;)
+.qqplot(df1$rate_log_p20,&quot;constant = 20&quot;)
+.qqplot(df1$rate_log_p30,&quot;constant = 30&quot;)
+.qqplot(df1$rate_log_p40,&quot;constant = 40&quot;)
+.qqplot(df1$rate_log_p50,&quot;constant = 50&quot;)</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig10.png" /></p>
+<p>As we can tell from the qq-plots, when constant value increases from 1 to 20, the distribution of change rate was significantly improved. Note that we also want to keep the constant value as small as possible, since a large constant value may weaken the difference among change rates too much. Thus, we finally set the constant value as 20.</p>
+<p>Following is our new model. We also conducted backward selection here.</p>
+<pre class="r"><code>lm2 &lt;- lm(rate_log_p20 ~ 
+            (age_level + days +sex +log(vol1 + 20))^2, data = df1)
+model2 &lt;- step(lm2, direction = &quot;backward&quot;)</code></pre>
+<pre class="r"><code>summary(model2)</code></pre>
+<p>As we can tell from the model summary, sex seems not significantly associate with rate of CAC progression.</p>
+<p>Then we check the goodness of fit</p>
+<pre class="r"><code>par(mfrow = c(2, 2))
+plot(model2)</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig11.png" /></p>
+<p>As for the model diagnostics, the residuals were left skewed sightly, conditional means follow a horizon and straight line, and variances were largely constant. Generally speaking, the model fitting was improved.</p>
+</div>
+<div id="conclusion" class="section level3">
+<h3>Conclusion</h3>
+<p>Based on the result of follow up test, we do not have sufficient evidence to prove that rates of CAC progression are different between male and female.</p>
+</div>
+</div>
+<div id="inferential-methodologies" class="section level2">
+<h2>Inferential methodologies</h2>
+<p><a href="https://www.sciencedirect.com/science/article/pii/S0025619611640640">Rumberger et. al</a> suggested that a CAC score of less than 20 is likely to be associated with no or minimal luminal narrowing. Thus, we chose a CAC score of 20 at first scan run of follow-up was used as the cutpoint for selecting the study group. About one-quarter (109 of 217 = 50.2%) of the participants had a CAC score at first scan run of follow-up of 20 or more.</p>
+<pre class="r"><code>data %&gt;% 
+  mutate(measure = vol1, time = 0) %&gt;%
+  select(-c(vol1, vol2, days, change_rate))
+
+data_glm &lt;- rbind(data %&gt;% mutate(measure = vol1, time = 0) %&gt;%
+                    select(-c(vol1, vol2, days, change_rate)),
+                  data %&gt;% mutate(measure = vol2, time = days) %&gt;%
+                    select(-c(vol1, vol2, days, change_rate)))
+
+keep_id &lt;- unique(data_glm$nid[which(data_glm$measure &gt;= 20 &amp;
+                                       data_glm$time == 0)])
+length(keep_id)/length(unique(data_glm$nid))
+data_glm &lt;- data_glm[which(data_glm$nid %in% keep_id),]
+
+ggplot(data = data_glm %&gt;% 
+         mutate_at(vars(sex), function(x){ifelse(x==1, &quot;male&quot;, &quot;female&quot;)}),
+       aes(x = time, y = measure, group = nid, color = sex)) + 
+  geom_point(size=2) +
+  xlab(&quot;time (h)&quot;) + 
+  ylab(&quot;concentration (mg/l)&quot;) +
+  scale_y_log10()+
+  geom_line() +
+  theme_bw()</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig12.png" /></p>
+<p>we saw some differences between these profiles and presumed that these are not only due to the residual errors. Random effects for individuals may be considered.</p>
+<p>To access the risk factors of CAC, Maher et. al<a href="https://www.sciencedirect.com/science/article/pii/S0025619611644005#bib22">(ref)</a> built a generalized linear mixed model, which contains both fixed effects and random effects. In addition, other studies relating risk factors to quantity of CAC have used linear regression with log-transformed quantity of CAC (ln(quantity of CAC + 1)) in the whole heart from a single electron beam CT scan run as the outcome variable <a href="https://pubmed.ncbi.nlm.nih.gov/28814488/">(ref1)</a><a href="https://pubmed.ncbi.nlm.nih.gov/8296711/">(ref2)</a><a href="https://pubmed.ncbi.nlm.nih.gov/1572036/">(ref3)</a><a href="https://academic.oup.com/aje/article/144/10/943/92669?login=true">(ref4)</a>. The use of mixed effects models will allow us to take into account this inter individual variability.</p>
+<p>We build three candidate models. <code>model0</code>: linear model without random effects. <code>model1</code>: linear model with random effects. <code>model2</code>: linear model with random effects and a interaction term of sex and time. Note that we also took log of measures here.</p>
+<pre class="r"><code>model0 &lt;- lm(log(measure) ~ sex + age_level + time, data = data_glm)         
+model1 &lt;- lmer(log(measure) ~ sex + time + age_level + (1 | nid), 
+              data = data_glm, REML = F)
+model2 &lt;- lmer(log(measure) ~ sex + time + sex:time + age_level + (1 | nid), 
+              data = data_glm, REML = F)</code></pre>
+</div>
+<div id="result-interpretation" class="section level2">
+<h2>Result interpretation</h2>
+<pre class="r"><code>anova(model2, model1)
+anova(model1, model0)
+#plot(model2) #not sure need it or not
+qqnorm(resid(model1))
+qqline(resid(model1))
+
+summary(model1)</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig13.png" /></p>
+<p>Applied anova test to compared goodness-of-fit (deviance) between candidate models. We found that random effect is significant while interaction term is not. qq plot shows the model residuals are slightly skewed.</p>
+</div>
+<div id="experiment" class="section level2">
+<h2>Experiment</h2>
+<pre class="r"><code># prepare data
+df &lt;- data</code></pre>
+<p>While the given data has only two measurements for each individual, a more sensible way to model the CAC progression is to use the mixed model, which include both fixed effect and random effect in order to capture the differences among the individuals.</p>
+<p>One interesting experiment we would like to show here is the mixed model that we fit using the volume score itself as the dependent variable and the first measurement was used as a regressor. We would like to see the effect of gender from this mixed linear model.</p>
+<p>First we used the ‘gather’ function to transform the data into long format such that each nid would have two records.</p>
+<pre class="r"><code># Random effect model (can only be applied on vols, instead of rates)
+df2 &lt;- df %&gt;% 
+  mutate(rate = (vol2 - vol1)/days) %&gt;%
+  gather(&#39;vol1&#39;, &#39;vol2&#39;, key = &#39;visits&#39;, value = &#39;vol&#39;) %&gt;%
+  mutate(sex = as.factor(sex))
+  #mutate(rate = round(as.numeric(rate), 2))
+df2[df2$visits == &quot;vol1&quot;, &quot;days&quot;] &lt;- 1
+head(df2, 10)</code></pre>
+<p>Random model in this scenario:</p>
+<pre class="r"><code>model_mix1 &lt;- lmer(vol ~ age + sex + days + (1|nid), data = df2)
+fixef(model_mix1)</code></pre>
+</div>
+<div id="limitations-improvement" class="section level2">
+<h2>Limitations &amp; Improvement</h2>
+<ol style="list-style-type: decimal">
+<li>Too little covariates took into account:</li>
+</ol>
+<ul>
+<li><p>As introduced in the background section, the CAC progression is related to not only gender and age, but smoking history, life style, family history of heart problem etc. If we were able to fit a model that included more risk factors, the results could be different.</p></li>
+<li><p>Also, we have got only one follow-up measurement for each patient. To fit a more rigorous model, one could use random effect model (which was suggested in many paper), at least two measurements at follow-up for each individual.</p></li>
+</ul>
+<pre class="r"><code>df4 &lt;- df[which(df$vol1 &gt; df$vol2), ]
+summary(df4)</code></pre>
+<ul>
+<li>Among all the observations, 24 of them (11%) actually got a decrease in the calcium volume score, extra attention need be paid into those patients.</li>
+</ul>
+<pre class="r"><code>df4 %&gt;% 
+  select(-c(nid, age)) %&gt;%
+  tbl_summary(
+    by = sex,
+    #statistic = list(c(&quot;vol1&quot;, &quot;vol2&quot;, &quot;days&quot;) ~ &quot;{mean} ({sd})&quot;),
+    digits = all_continuous() ~ 1,
+    missing_text = &quot;(Missing)&quot;
+  ) %&gt;% add_p(pvalue_fun = ~style_pvalue(.x, digits = 2)) %&gt;% 
+  add_overall() %&gt;%
+  modify_header(label ~ &quot;**Variable**&quot;) %&gt;%
+  modify_spanning_header(c(&quot;stat_1&quot;, &quot;stat_2&quot;) ~ &quot;**Grouped by gender**&quot;)</code></pre>
+<p><img src="/post/2021-04-20-coronary-artery-calcification-case-report/index.en-us_files/fig14.png" /></p>
+<pre class="r"><code>df5 &lt;- df[which(df$vol1 &lt;= df$vol2), ] %&gt;%
+  mutate(rate = (vol2 - vol1)/days) %&gt;%
+  mutate(rate_log = (log(vol2) - log(vol1))/days) %&gt;%
+  mutate(sex = ifelse(sex==0, &quot;female&quot;, &quot;male&quot;)) %&gt;%
+  mutate(nid = as.factor(nid)) 
+
+lm_inc &lt;- lm(rate ~ (age + days + sex + vol1)^2, data = df5)
+model_inc &lt;- step(lm_inc, direction = &quot;both&quot;)
+summary(lm_inc)</code></pre>
+</div>
+<div id="supplemantery" class="section level2">
+<h2>Supplemantery</h2>
+<p><strong>Agatston method</strong> - The Agatston method uses the weighted sum of lesions with a density above 130 HU, multiplying the area of calcium by a factor related to maximum plaque attenuation: 130-199 HU, factor 1; 200-299 HU, factor 2; 300-399 HU, factor 3; and ≥ 400 HU, factor 4.</p>
+<p>Therefore, the slice thickness and the interval must follow the original protocols in order to reduce the noise variation and, consequently, the maximum attenuation of the plaques, allowing the original published scores to be reproduced.</p>
+<p><strong>Calcium volume score</strong> - The calcium volume score has proven to be the most robust and reproducible method. It is calculated by multiplying the number of voxels with calcification by the volume of each voxel, including all voxels with an attenuation &gt; 130 HU. However, this method is particularly sensitive to the partial volume (especially in plaques with high attenuation) and subject to variability between tests, depending on the position of the plaque in the axial slice acquired.</p>
+<p><strong>Relative calcium mass score</strong> - The relative calcium mass score is calculated by multiplying the mean attenuation of the calcified plaque by the plaque volume in each image, thus reducing the variation caused by the partial volume. The absolute calcium mass score uses a correction factor based on the attenuation of water.<br />
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5487233/#:~:text=Agatston%20method%20%2D%20The%20Agatston%20method,%E2%89%A5%20400%20HU%2C%20factor%204">(reference)</a><br />
+<a href="https://reader.elsevier.com/reader/sd/pii/S0025619611644005?token=5E4AABA4A19E7CBDDBFDD236EADD69C8009F3F16CF7DF79FBB342B0FA5A6A70711DE163B9D5D2261B1B09CE0B4A9D9D3&amp;originRegion=us-east-1&amp;originCreation=20210420072609">(reference)</a>
+<a href="https://reader.elsevier.com/reader/sd/pii/S0025619611640640?token=985C66ECDF915331581FFB621D1F909C73093AC220C6E2956D30A82A052D00791E433B78014B9BDBED119D62CD62DF6A&amp;originRegion=us-east-1&amp;originCreation=20210420071317">(reference)</a></p>
+<p><strong>Why not use proportion change</strong> - When considering the percentage change in CAC, some points are highly influenced by very small baseline CAS. A very small absolute increase in CAC may result in a huge percentage increase.</p>
+</div>

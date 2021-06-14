@@ -1,0 +1,225 @@
+---
+title: Machine learning practice 2
+author: Zian ZHUANG
+date: '2021-06-14'
+slug: Machine learning practice 2
+categories:
+  - Machine learning
+tags:
+  - Machine learning
+  - practice
+header-includes: 
+  - \usepackage{amsgen,amsmath,amstext,amsbsy,amsopn,amssymb,mathabx,amsthm,bm,bbm}
+keywords:
+  - tech
+comments: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<!--more-->
+<div id="q1." class="section level2">
+<h2>Q1.</h2>
+<p>([ISL] 4.11, <em>25 pt</em>) In this problem, you will develop a model to predict whether a given car gets high or low gas mileage based on the <code>Auto</code> data set. Write a data analysis report addressing the following problems.</p>
+<pre class="r"><code>data(Auto)
+#help(&quot;Auto&quot;)</code></pre>
+<div id="a" class="section level3">
+<h3>(a)</h3>
+<p>Create a binary variable, <code>mpg01</code>, that contains a 1 if <code>mpg</code> contains a value above its median, and a 0 if <code>mpg</code> contains a value below its median.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>df &lt;- Auto %&gt;%
+  mutate(mpg01=ifelse(mpg &gt; median(mpg), 1, 0) %&gt;% as.factor)</code></pre>
+</div>
+<div id="b" class="section level3">
+<h3>(b)</h3>
+<p>Explore the data graphically in order to investigate the association between <code>mgp01</code> and the other features. Which of the other features seem most likely to be useful in predicting <code>mpg01</code>? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>df %&gt;% 
+  mutate(name_unclass = unclass(name)) %&gt;%
+  mutate_at(vars(names(df)[c(2,8)]),as.factor)-&gt; df_p
+vars_need &lt;- dput(names(df_p))[-c(1,9,10)]
+for(i in 1:8){
+  if(i %in% c(1,7)){
+    ggplot(df_p, aes_string(x=vars_need[i], y=&quot;mpg&quot;, fill=&quot;mpg01&quot;)) +
+      geom_boxplot() +
+      theme_bw() +
+      theme(legend.position = &quot;none&quot;) -&gt; temp
+  }else{
+    ggplot(df_p, aes_string(vars_need[i], &quot;mpg&quot;, group=&quot;mpg01&quot;, color=&quot;mpg01&quot;)) + 
+      geom_point() + 
+      xlab(vars_need[i]) +
+      scale_color_manual(values = c(&#39;#999999&#39;,&#39;#E69F00&#39;)) + 
+      #geom_smooth(method=lm, se=T, fullrange=T)+
+      theme_bw()+
+      theme(legend.position = &quot;none&quot;)-&gt; temp
+  }
+  temp_name &lt;- paste0(&quot;fig_&quot;,i)
+  assign(temp_name, temp)
+}
+
+ggarrange(plotlist=mget(paste0(&quot;fig_&quot;,c(1:8))), 
+          nrow = 3, ncol = 3, labels = 1:8)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig28.png" /></p>
+<p>According to the scatter plot and boxplot, we found that variable <code>displacement</code>, <code>horsepower</code>, <code>weight</code>, <code>acceleration</code> and <code>year</code> are most likely to be useful in predicting <code>mpg01</code>.</p>
+</div>
+<div id="c" class="section level3">
+<h3>(c)</h3>
+<p>Split the data into a training set and a test set with ratio 2:1.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>set.seed(1996)
+trainid &lt;- sample(1:nrow(df), nrow(df)*2/3 %&gt;% round, replace=F) 
+train &lt;- df[trainid,]
+test &lt;- df[-trainid,]</code></pre>
+</div>
+<div id="d" class="section level3">
+<h3>(d)</h3>
+<p>Perform LDA on the training data in order to predict <code>mpg01</code> using the variables that seemed most associated with <code>mpg01</code> in (b). What is the test error of the model obtained?</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>ldafit &lt;- lda(mpg01 ~ displacement+horsepower+weight+acceleration+year, 
+               data=train)
+ldafit_pred &lt;- predict(ldafit, test)$class
+table(ldafit_pred, test$mpg01)
+
+# test error
+mean(ldafit_pred != test$mpg01)</code></pre>
+<p>test error rate: 9.92%</p>
+</div>
+<div id="e" class="section level3">
+<h3>(e)</h3>
+<p>Perform QDA on the training data in order to predict <code>mpg01</code> using the variables that seemed most associated with <code>mpg01</code> in (b). What is the test error of the model obtained?</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>qdafit &lt;- qda(mpg01 ~ displacement+horsepower+weight+acceleration+year, 
+               data=train)
+qdafit_pred &lt;- predict(qdafit, test)$class
+table(qdafit_pred, test$mpg01)
+
+# test error
+mean(qdafit_pred != test$mpg01)</code></pre>
+<p>test error rate: 10.69%</p>
+</div>
+<div id="f" class="section level3">
+<h3>(f)</h3>
+<p>Perform logistic regression on the training data in order to predict <code>mpg01</code> using the variables that seemed most associated with <code>mpg01</code> in (b). What is the test error of the model obtained?</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>logitfit &lt;- glm(mpg01 ~ displacement+horsepower+weight+acceleration+year, 
+                data=train, family=binomial)
+logitfit_prob &lt;- predict(logitfit, test, type=&quot;response&quot;)
+logitfit_pred &lt;- ifelse(logitfit_prob &gt; 0.5, 1, 0)
+table(logitfit_pred, test$mpg01)
+
+# error rate
+mean(logitfit_pred != test$mpg01)  </code></pre>
+<p>test error rate is 10.69%, which turned out to be the same as that of QDA.</p>
+</div>
+</div>
+<div id="q2." class="section level2">
+<h2>Q2.</h2>
+<p>The <code>Boston</code> dataset contains variables <code>dis</code> (the weighted mean of distances to five Boston employment centers) and <code>nox</code> (nitrogen oxides concentration in parts per 10 million).</p>
+<pre class="r"><code>data(&quot;Boston&quot;)
+#help(Boston)</code></pre>
+<div id="a-1" class="section level3">
+<h3>(a)</h3>
+<p>Use the <code>poly()</code> function to fit a cubic polynomial regression to predict <code>nox</code> using <code>dis</code>. Report the regression output, and plot the data and resulting polynomial fits.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>lmfit = lm(nox ~ poly(dis, 3), data = Boston)
+summary(lmfit)
+
+dislims &lt;- range(Boston$dis)
+dis.grid &lt;- seq(dislims[1], dislims[2], 0.1)
+preds &lt;- predict(lmfit, newdata=list(dis=dis.grid), se=TRUE)
+se95 &lt;- preds$fit + cbind(1.96*preds$se.fit, -1.96*preds$se.fit)
+plot(Boston$dis, Boston$nox, xlim=dislims, cex=0.5)
+lines(dis.grid, preds$fit, lwd=2.5, col=&quot;blue&quot;)
+matlines(dis.grid, se95, lwd=1.5, col=&quot;blue&quot;, lty=2)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig29.png" /></p>
+</div>
+<div id="b-1" class="section level3">
+<h3>(b)</h3>
+<p>Plot the polynomial fits for a range of different polynomial degrees (say, from 1 to 10), and report the associated residual sum of squares.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>rss.error &lt;- NULL
+for (i in 1:10) {
+  lmfit &lt;- lm(nox ~ poly(dis,i), data=Boston)
+  rss.error &lt;- rbind(rss.error, 
+                     data.frame(rss.error=sum(lmfit$residuals^2),
+                                polynomial.degrees=i))
+}
+
+# report the associated residual sum of squares
+rss.error
+plot(rss.error$polynomial.degrees, rss.error$rss.error, type=&quot;b&quot;)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig30.png" /></p>
+<p>We can tell from the plot that rss decreases monotonically when polynomial degrees increase.</p>
+</div>
+<div id="c-1" class="section level3">
+<h3>(c)</h3>
+<p>Perform cross-validation to select the optimal degree for the polynomial, and explain your results.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>cv.error &lt;- NULL
+for (i in 1:10) {
+  set.seed(1996)
+  glm.fit &lt;- glm(nox~poly(dis,i), family = gaussian, data=Boston)
+  temp &lt;- cv.glm(Boston, glm.fit, K=10)$delta[2]
+  cv.error &lt;- rbind(cv.error, 
+                    data.frame(rss.error=temp, polynomial.degrees=i))
+}
+cv.error
+plot(cv.error$polynomial.degrees, cv.error$rss.error, type=&quot;b&quot;)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig31.png" /></p>
+<p>According to the plot, we see that the CV error reduces when polynomial degrees increase from 1 to 3 and does not show clear improvement after degree 3 polynomial. Thus, we pick 3 as the best polynomial degree.</p>
+</div>
+<div id="d-1" class="section level3">
+<h3>(d)</h3>
+<p>Use the <code>bs()</code> function to fit a regression spline to predict <code>nox</code> using <code>dis</code>. Report the output for the fit using four degrees of freedom. How did you choose the knots? Plot the resulting fit.</p>
+<p><strong>Answer</strong>:</p>
+<p>We choose the knots as the 25%, 50% and 75% quantile of the <code>dis</code> data.</p>
+<pre class="r"><code>knots_set &lt;- summary(Boston$dis) %&gt;% as.numeric %&gt;% .[c(2,3,5)]
+spfit &lt;- lm(nox ~ bs(dis, df = 4, knots = knots_set), data = Boston)
+
+#Report the model summary
+summary(spfit)
+
+#Resulting fit
+sppred &lt;- predict(spfit, list(dis = dis.grid))
+plot(nox ~ dis, data = Boston)
+lines(dis.grid, sppred, col = &quot;blue&quot;, lwd = 2)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig32.png" /></p>
+<p>The prediction line seems to fit the data well.</p>
+</div>
+<div id="e-1" class="section level3">
+<h3>(e)</h3>
+<p>Now fit a regression spline for a range of degrees of freedom, and plot the resulting fits and report the resulting RSS. Describe the results obtained.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>rss.error &lt;- NULL
+for (i in 4:16) {
+  spfit &lt;- lm(nox~bs(dis, df=i), data=Boston)
+  rss.error &lt;- rbind(rss.error, 
+                     data.frame(rss.error=sum(spfit$residuals^2),
+                                polynomial.degrees=i))
+}
+
+# report the associated residual sum of squares
+rss.error
+plot(rss.error$polynomial.degrees, rss.error$rss.error, type=&quot;b&quot;)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig33.png" /></p>
+<p>We can tell from the plots that rss error reduces when degrees of freedom increase from 4 to 14 and does not show clear improvement after 14 degrees of freedom.</p>
+</div>
+<div id="f-1" class="section level3">
+<h3>(f)</h3>
+<p>Perform cross-validation to select the best degrees of freedom for a regression spline on this data. Describe your results.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>cv.error &lt;- NULL
+for (i in 4:16) {
+  set.seed(19969)
+  glm.fit &lt;- glm(nox ~ bs(dis, df = i), family = gaussian, data=Boston)
+  temp &lt;- cv.glm(Boston, glm.fit, K=10)$delta[2] # adjusted cross-validation estimate
+  cv.error &lt;- rbind(cv.error, 
+                    data.frame(rss.error=temp, polynomial.degrees=i))
+}
+cv.error
+plot(cv.error$polynomial.degrees, cv.error$rss.error, type=&quot;b&quot;)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-2/index.en-us_files/fig34.png" /></p>
+<p>After 10-folds cross-validation, we can tell from the plots that cv error reach the minimum value at 10 degrees of freedom and does not show clear improvement after 10 degrees of freedom. Thus, we choose 10 as the best degrees of freedom.</p>
+</div>
+</div>

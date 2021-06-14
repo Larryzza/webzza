@@ -1,0 +1,273 @@
+---
+title: Machine learning practice 3
+author: Zian ZHUANG
+date: '2021-06-15'
+slug: Machine learning practice 3
+categories:
+  - Machine learning
+tags:
+  - practice
+  - Machine learning
+header-includes: 
+  - \usepackage{amsgen,amsmath,amstext,amsbsy,amsopn,amssymb,mathabx,amsthm,bm,bbm}
+keywords:
+  - tech
+comments: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<!--more-->
+<div id="q1." class="section level2">
+<h2>Q1.</h2>
+<p>(SVM, <em>20 pt</em>) In this problem, you will use support vector approaches in order to predict whether a given car gets high or low gas mileage based on the <code>Auto</code> data set.</p>
+<pre><code>```r
+data(Auto)
+```</code></pre>
+<div id="a" class="section level3">
+<h3>(a)</h3>
+<p>Create a binary variable that takes on a 1 for cars with gas mileage above the median, and a 0 for cars with gas mileage below the median.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>df &lt;- Auto %&gt;%
+  mutate(mpg01=ifelse(mpg &gt; median(mpg), 1, 0) %&gt;% as.factor) %&gt;%
+  select(-c(mpg, name))</code></pre>
+</div>
+<div id="b" class="section level3">
+<h3>(b)</h3>
+<p>Fit a support vector classifier to the data with various values of <code>cost</code>, in order to predict whether a car gets high or low gas mileage. Report the cross-validation errors associated with different values of this parameter. Comment on your results.</p>
+<p><strong>Answer</strong>:</p>
+<pre class="r"><code>set.seed(1996)
+linear_tune &lt;- tune(svm, mpg01 ~ ., data = df, kernel = &quot;linear&quot;,
+                 ranges = list(cost = c(.001, .01, .1, 1, 5, 10, 100)))
+summary(linear_tune)
+linear_tune$best.parameters
+linear_tune$best.performance</code></pre>
+<p>Results presents that cross-validation error was minimized when cost equals 5.</p>
+</div>
+<div id="c" class="section level3">
+<h3>(c)</h3>
+<p>Now repeat (b), this time using SVMs with radial and polynomial basis kernels, with different values of <code>gamma</code> and <code>degree</code> and <code>cost</code>. Comment on your results.</p>
+<p><strong>Answer</strong>:</p>
+<p>radial basis kernels:</p>
+<pre class="r"><code>set.seed(1996)
+radial_tune &lt;- tune(svm, mpg01~., data=df, kernel=&#39;radial&#39;,
+                 ranges = list(cost = c(.001, .01, .1, 1, 5, 10, 100,1000),
+                               gamma = c(0.5, 1, 2, 3, 4)))
+radial_tune$best.parameters
+radial_tune$best.performance</code></pre>
+<p>As we can see from the output, the training CV error is minimized for a radial model at cost=1 and gamma=1. In addition, the training CV error is a little better than that of the linear kernel model.</p>
+<p>polynomial basis kernels:</p>
+<pre class="r"><code>set.seed(1996)
+poly_tune = tune(svm, mpg01~., data=df, kernel=&#39;polynomial&#39;,
+                 ranges = list(cost = c(.001, .01, .1, 1, 5, 10, 100,1000),
+                               degree = c(1,2,3,4,5)))
+poly_tune$best.parameters
+poly_tune$best.performance</code></pre>
+<p>As we can see from the output, the training CV error is minimized for a polynomial model at cost=5 and degree=3, which suggested the true decision boundary is non-linear. In addition, the training CV error is better than that of the linear kernel model but worse than that of the radial kernel model.</p>
+</div>
+<div id="d" class="section level3">
+<h3>(d)</h3>
+<p>Make some plots to back up your assertions in (b) and (c).</p>
+<pre class="r"><code>svmfit_l &lt;- svm(mpg01~., data=df, kernel=&quot;linear&quot;, cost=5)
+svmfit_r &lt;- svm(mpg01~., data=df, kernel=&quot;radial&quot;, cost=1, gamma=1)
+svmfit_p &lt;- svm(mpg01~., data=df, kernel=&quot;polynomial&quot;, cost=5, degree=3)
+names_list &lt;- names(df)[-8]
+
+# some plots
+
+#linear
+plot(svmfit_l, df, displacement~weight)
+
+#radial
+plot(svmfit_r, df, displacement~weight)
+
+#polynomial
+plot(svmfit_p, df, displacement~weight)</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig1.png" /><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig2.png" /><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig3.png" /></p>
+</div>
+</div>
+<div id="q2." class="section level2">
+<h2>Q2.</h2>
+<p>(<span class="math inline">\(K\)</span>-Means Clustering, PCA and MDS, <em>40 pt</em>) The following codes read in a gene expression data from the TCGA project, which contains the expression of a random sample of 2000 genes for 563 patients from three cancer subtypes: Basal (<code>Basal</code>), Luminal A (<code>LumA</code>), and Luminal B (<code>LumB</code>). Suppose we are only interested in distinguishing Luminal A samples from Luminal B - but alas, we also have Basal samples, and we don’t know which is which. Write a data analysis report to address the following problems.</p>
+<pre><code>```r
+TCGA &lt;- read.csv(&quot;TCGA_sample_2.txt&quot;, header = TRUE)
+
+# Store the subtypes of tissue and the gene expression data
+Subtypes &lt;- TCGA[ ,1]
+Gene &lt;- as.matrix(TCGA[,-1])
+```</code></pre>
+<div id="a-1" class="section level3">
+<h3>(a)</h3>
+<p>Run <span class="math inline">\(K\)</span>-means for <span class="math inline">\(K\)</span> from 1 to 20 and plot the associated within cluster sum of squares (WSSs). Comment the WSS at <span class="math inline">\(K=3\)</span>.</p>
+<pre class="r"><code>wss &lt;- NULL
+for(i in 1:20){
+  kmeansfit &lt;- kmeans(Gene, centers = i, nstart = 20)
+  temp &lt;- data.frame(value=kmeansfit$betweenss/kmeansfit$totss,
+                     clusters=i)
+  wss &lt;- rbind(wss, temp)
+}
+plot(wss$clusters, wss$value, type=&quot;b&quot;, 
+     xlab = &quot;number of clusters&quot;, ylab = &quot;WSS value&quot;)</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig4.png" /></p>
+<pre class="r"><code>k3 &lt;- kmeans(Gene, centers = 3, nstart = 20)
+k3$betweenss/k3$totss</code></pre>
+<p>Comment the WSS at <span class="math inline">\(K=3\)</span>: The 14.8% is a measure of the total variance in our data set that is explained by the clustering. k-means minimize the within group dispersion and maximize the between-group dispersion. By assigning the samples to 3 clusters rather than 563 (number of samples) clusters achieved a reduction in sums of squares of 14.8%.</p>
+</div>
+<div id="b-1" class="section level3">
+<h3>(b)</h3>
+<p>Apply <span class="math inline">\(K\)</span>-means with <span class="math inline">\(K=3\)</span> to the <code>Gene</code> dataset. What percentage of <code>Basal</code>, <code>LumA</code>, and <code>LumB</code> type samples are in each of the 3 resulting clusters? Did we do a good job distinguishing <code>LumA</code> from <code>LumB</code>? Confusion matrix of clusters versus subtypes might be helpful.</p>
+<pre class="r"><code>results &lt;- data.frame(Subtypes,pred=k3$cluster) %&gt;% filter(Subtypes!=&quot;Basal&quot;)
+table(results$Subtypes,results$pred)</code></pre>
+<p>According to the simple counting table, we found that LumA should be matching with 2 and LumB should be matching with 1. Then we can have confusion matrix of clusters versus subtypes,</p>
+<pre class="r"><code>tibble(LumA = c(192, 117),
+       LumB = c(27, 125),
+       pred = c(&quot;LumA (pred)&quot;, &quot;LumB (pred)&quot;)) %&gt;% 
+  column_to_rownames(var = &quot;pred&quot;)
+(192+125)/(461)</code></pre>
+<p>As we can tell from the confusion matrix that the overall classify accuracy is 68.8%, which is satisfying.</p>
+</div>
+<div id="c-1" class="section level3">
+<h3>(c)</h3>
+<p>Now apply PCA to the <code>Gene</code> dataset. Plot the data in the first two PCs colored by <code>Subtypes</code>. Does this plot appear to separate the cancer subtypes well?</p>
+<pre class="r"><code>Gene_df &lt;- Gene[, colSums(Gene == 0) != nrow(Gene)]
+# Dimension reduction using PCA
+res.pca &lt;- prcomp(Gene_df,  scale = TRUE)
+#Visualize eigenvalues (scree plot).
+fviz_eig(res.pca)
+#Graph of individuals.
+fviz_pca_ind(res.pca,
+             col.ind = as.factor(Subtypes), # color by groups
+             palette = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;),
+             legend.title = &quot;Groups&quot;,
+             repel = TRUE
+             )</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig5.png" /></p>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig6.png" />
+As we can tell from the plot, PCA appears to separate the cancer subtypes well.</p>
+</div>
+<div id="d-1" class="section level3">
+<h3>(d)</h3>
+<p>Try plotting some more PC combinations. Can you find a pair of PCs that appear to separate all three subtypes well? Report the scatterplot of the data for pair of PCs that you think best separates all three types.</p>
+<pre class="r"><code># Coordinates of individuals
+ind.coord &lt;- data.frame(type=as.factor(Subtypes), get_pca_ind(res.pca)$coord)
+
+index &lt;- 1
+for(i in 1:5){
+  for(k in (i+1):6){
+    ggplot(ind.coord) +
+      geom_point(aes_string(x=names(ind.coord)[i+1], y=names(ind.coord)[k+1], 
+                            color=&quot;type&quot;))+theme_bw() -&gt; temp
+    assign(paste0(&quot;p_&quot;,index), temp)
+    index &lt;- index+1
+  }
+}
+ggarrange(plotlist=mget(paste0(&quot;p_&quot;,c(1:6))), 
+          nrow = 3, ncol = 2)
+ggarrange(plotlist=mget(paste0(&quot;p_&quot;,c(7:12))), 
+          nrow = 3, ncol = 2)
+ggarrange(plotlist=mget(paste0(&quot;p_&quot;,c(13:15))), 
+          nrow = 3, ncol = 1)</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig7.png" /><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig8.png" /><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig9.png" /></p>
+<p>According to plots, we cannot find a pair of PCs that appear to separate all three subtypes well. The best pair of PCs that separates all three types is Dim1&amp;PCDim3.</p>
+</div>
+<div id="e" class="section level3">
+<h3>(e)</h3>
+<p>Perform <span class="math inline">\(K\)</span>-means with <span class="math inline">\(K=3\)</span> on the pair of PCs identified in (d). Report the confusion matrix and make some comments.</p>
+<pre class="r"><code>k3 &lt;- kmeans(ind.coord[,c(2,4)], centers = 3, nstart = 20)
+results &lt;- data.frame(Subtypes,pred=k3$cluster)
+table(results$Subtypes,results$pred)</code></pre>
+<p>According to the simple counting table, we found that LumA should be matching with 2 and LumB should be matching with 3. Then we can have confusion matrix of clusters versus subtypes,</p>
+<pre class="r"><code>tibble(Basal = c(101, 1, 0),
+       LumA = c(0, 201, 108),
+       LumB = c(10, 41, 101),
+       pred = c(&quot;Basal (pred)&quot;, &quot;LumA (pred)&quot;, &quot;LumB (pred)&quot;)) %&gt;% 
+  column_to_rownames(var = &quot;pred&quot;)
+(201+101)/(201+108+41+101)</code></pre>
+<p>As we can tell from the confusion matrix for <code>LumA</code> and <code>LumB</code> that the overall classify accuracy is 67.0%, which is largely consistent with the results when we applied <span class="math inline">\(K\)</span>-means with <span class="math inline">\(K=3\)</span> algorithm directly.</p>
+</div>
+<div id="f" class="section level3">
+<h3>(f)</h3>
+<p>Create two plots colored by the clusters found in (b) and in (e) respectively. Do they look similarly or differently? Explain why using PCA to reduce the number of dimensions from 2000 to 2 did not significantly change the results of <span class="math inline">\(K\)</span>-means.</p>
+<pre class="r"><code>k3_origin &lt;- kmeans(Gene_df, centers = 3, nstart = 20)
+# clusters found in (b)
+data.frame(real=as.factor(Subtypes), 
+           pred=as.factor(k3_origin$cluster),ind.coord)%&gt;%
+  ggscatter(
+  ., x = &quot;Dim.1&quot;, y = &quot;Dim.3&quot;, 
+  color = &quot;pred&quot;, palette = &quot;npg&quot;, ellipse = TRUE, ellipse.type = &quot;convex&quot;,
+  shape = &quot;real&quot;, size = 1.5,  legend = &quot;right&quot;, ggtheme = theme_bw()
+)</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig10.png" /></p>
+<pre class="r"><code># clusters found in (e)
+data.frame(real=as.factor(Subtypes), 
+           pred=as.factor(k3$cluster),ind.coord)%&gt;%
+  ggscatter(
+  ., x = &quot;Dim.1&quot;, y = &quot;Dim.3&quot;, 
+  color = &quot;pred&quot;, palette = &quot;npg&quot;, ellipse = TRUE, ellipse.type = &quot;convex&quot;,
+  shape = &quot;real&quot;, size = 1.5,  legend = &quot;right&quot;, ggtheme = theme_bw()
+)</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig11.png" /></p>
+<p>As we can tell from the plots that two model provided different clusters (but similar classification accuracy). Research (Yeung &amp; Ruzzo, 2000) showed that clustering with the PC’s rather than the original dims does not necessarily improve cluster quality. In this question, since none of PC’s (which contain most of the variation in the data) capture the cluster structure well, it cannot improve the classification accuracy.</p>
+</div>
+<div id="g" class="section level3">
+<h3>(g)</h3>
+<p>Now apply MDS with various metrics and non-metric MDS to <code>Gene</code> to obtain 2-dimensional representations. Does any of them provide better separated scatterplot as compared to that from (d)? Notice that the Euclidean metric in MDS gives the same representation as PCA does.</p>
+<pre class="r"><code># Compute classic MDS
+mds_c &lt;- Gene %&gt;%
+  dist() %&gt;%          
+  cmdscale(k = 2) %&gt;%
+  as_tibble() %&gt;%
+  mutate(type=as.factor(Subtypes))
+colnames(mds_c)[1:2] &lt;- c(&quot;Dim.1&quot;, &quot;Dim.2&quot;)
+# Plot MDS
+ggplot(mds_c) +
+  geom_point(aes(x=Dim.1, y=Dim.2, color=type)) + theme_bw()</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig12.png" /></p>
+<pre class="r"><code># Compute non-metric MDS
+mds_n &lt;- Gene %&gt;%
+  dist() %&gt;%          
+  isoMDS(k = 2) %&gt;%
+  .$points %&gt;%
+  as_tibble() %&gt;%
+  mutate(type=as.factor(Subtypes))
+colnames(mds_n)[1:2] &lt;- c(&quot;Dim.1&quot;, &quot;Dim.2&quot;)
+# Plot MDS
+ggplot(mds_n) +
+  geom_point(aes(x=Dim.1, y=Dim.2, color=type)) + theme_bw()</code></pre>
+<p><img src="/post/2021-06-15-machine-learning-practice-3/index.en-us_files/fig13.png" /></p>
+<p>We can tell from the plots that both of them provide similar separated scatterplot as compared to that from (d).</p>
+</div>
+<div id="h" class="section level3">
+<h3>(h)</h3>
+<p>Perform <span class="math inline">\(K\)</span>-means with <span class="math inline">\(K=3\)</span> on the new representations from (g) and report the confusion matrices. Compare them with that from (e).</p>
+<pre class="r"><code>k3_mdsc &lt;- kmeans(mds_c[,1:2], centers = 3, nstart = 20)
+results &lt;- data.frame(Subtypes,pred=k3_mdsc$cluster)
+table(results$Subtypes,results$pred)
+
+k3_mdsn &lt;- kmeans(mds_n[,1:2], centers = 3, nstart = 20)
+results &lt;- data.frame(Subtypes,pred=k3_mdsn$cluster)
+table(results$Subtypes,results$pred)</code></pre>
+<p>According to the simple counting table, we found that classic mds and non-metric mds provides same results. Then we can have confusion matrix of clusters versus subtypes,</p>
+<pre class="r"><code>tibble(LumA = c(195, 114),
+       LumB = c(33, 117),
+       pred = c( &quot;LumA (pred)&quot;, &quot;LumB (pred)&quot;)) %&gt;% 
+  column_to_rownames(var = &quot;pred&quot;)
+(195+117)/(195+114+33+117)</code></pre>
+<p>As we can tell from the confusion matrix for <code>LumA</code> and <code>LumB</code> that the overall classify accuracy is 68.0%, which is very close to the results we obtained in (e).</p>
+</div>
+<div id="i" class="section level3">
+<h3>(i)</h3>
+<p>Suppose we might know that the first PC contains information we aren’t interested in. Apply <span class="math inline">\(K\)</span>-means with <span class="math inline">\(K=3\)</span> to <code>Gene</code> dataset <strong>subtracting the approximation from the first PC</strong>. Report the confusion matrix and make some comments.</p>
+<pre class="r"><code>k3 &lt;- kmeans(ind.coord[,-c(1:2)], centers = 3, nstart = 20)
+results &lt;- data.frame(Subtypes,pred=k3$cluster)
+table(results$Subtypes,results$pred)</code></pre>
+<p>According to the simple counting table, we found that classic mds and non-metric mds provides same results. Then we can have confusion matrix of clusters versus subtypes,</p>
+<pre class="r"><code>tibble(LumA = c(140, 61),
+       LumB = c(19, 94),
+       pred = c( &quot;LumA (pred)&quot;, &quot;LumB (pred)&quot;)) %&gt;% 
+  column_to_rownames(var = &quot;pred&quot;)
+(140+94)/(140+61+19+94)</code></pre>
+<p>As we can tell from the confusion matrix for <code>LumA</code> and <code>LumB</code> that the overall classify accuracy is 74.5%, which is better than the model including the first PC. But 106 <code>LumA</code> and 39 <code>LumB</code> cases are wrongly classified as <code>Basal</code>, which is much worse than the model including the first PC (<span class="math inline">\(\leq10\)</span> <code>LumA</code> and <span class="math inline">\(\leq10\)</span> <code>LumB</code>).</p>
+</div>
+</div>

@@ -1,0 +1,252 @@
+---
+title: Machine learning practice 1
+author: Zian ZHUANG
+date: '2021-06-14'
+slug: Machine learning practice 1
+categories:
+  - Machine learning
+tags:
+  - practice
+  - Machine learning
+header-includes: 
+  - \usepackage{amsgen,amsmath,amstext,amsbsy,amsopn,amssymb,mathabx,amsthm,bm,bbm}
+keywords:
+  - tech
+comments: no
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<!--more-->
+<ol style="list-style-type: decimal">
+<li>(Model Selection, [ISL] 6.8, <em>25 pt</em>) In this exercise, we will generate simulated data, and will then use this data to perform model selection.</li>
+</ol>
+<!-- -->
+<ol style="list-style-type: lower-alpha">
+<li>Use the <code>rnorm</code> function to generate a predictor <span class="math inline">\(X\)</span> of length <span class="math inline">\(n = 100\)</span>, as well as a noise vector <span class="math inline">\(\epsilon\)</span> of length <span class="math inline">\(n = 100\)</span>.</li>
+</ol>
+<pre class="r"><code>set.seed(199609)
+X &lt;- rnorm(100)
+epsilon &lt;- rnorm(100)</code></pre>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Generate a response vector <span class="math inline">\(Y\)</span> of length <span class="math inline">\(n = 100\)</span> according to the model <span class="math display">\[ Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \beta_3 X^3 + \epsilon, \]</span> where <span class="math inline">\(\beta_0 = 3\)</span>, <span class="math inline">\(\beta_1 = 2\)</span>, <span class="math inline">\(\beta_2 = -3\)</span>, <span class="math inline">\(\beta_3 = 0.3\)</span>.</li>
+</ol>
+<pre class="r"><code>b0 &lt;- 3 ; b1 &lt;- 2 ; b2 &lt;- -3 ; b3 &lt;- 0.3
+
+Y &lt;- b0 + b1*X + b2*X^2 + b3*X^3 + epsilon</code></pre>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Use the <code>regsubsets</code> function from <code>leaps</code> package to perform best subset selection in order to choose the best model from the set of predictors <span class="math inline">\((X, X^2, \cdots, X^{10})\)</span>. What are the best models obtained according to <span class="math inline">\(C_p\)</span>, BIC, and adjusted <span class="math inline">\(R^2\)</span>, respectively? Show some plots to provide evidence for your answer, and report the coefficients of the best model obtained.</li>
+</ol>
+<pre class="r"><code>df &lt;- data.frame(X,X^2,X^3,X^4,X^5,X^6,X^7,X^8,X^9,X^10,Y)
+best_model &lt;- regsubsets(Y ~ ., data = df, nvmax=10) 
+summary_model &lt;- best_model %&gt;% summary
+
+#the best models according to C_p, BIC, and adjusted R^2
+min.cp &lt;- which.min(summary_model$cp)  
+min.cp
+min.bic &lt;- which.min(summary_model$bic) 
+min.bic
+min.adjr2 &lt;- which.max(summary_model$adjr2)
+min.adjr2
+
+# plots that show the best models
+par(mfrow = c(2,2))
+plot(summary_model$cp, xlab = &quot;Number of Poly(X)&quot;, 
+     ylab =&quot;Cp&quot;, type=&quot;l&quot;)
+points(min.cp, summary_model$cp[min.cp], col = &quot;red&quot;, pch = 4, lwd = 5)
+
+plot(summary_model$bic, xlab = &quot;Number of Poly(X)&quot;, 
+     ylab = &quot;BIC&quot;, type=&quot;l&quot;)
+points(min.bic, summary_model$bic[min.bic], col = &quot;red&quot;, pch = 4, lwd = 5)
+
+plot(summary_model$adjr2, xlab = &quot;Number of Poly(X)&quot;, 
+     ylab = &quot;Adjusted R^2&quot;, type=&quot;l&quot;)
+points(min.adjr2, summary_model$adjr2[min.adjr2], col = &quot;red&quot;, pch = 4, lwd = 5)
+
+coef(best_model, min.cp)
+coef(best_model, min.bic)
+coef(best_model, min.adjr2)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-1/index.en-us_files/fig23.png" /></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>Repeat (c), using forward stepwise selection and also using backward stepwise selection. How does your answer compare to the results in (c)?</li>
+</ol>
+<pre class="r"><code># forward stepwise selection.
+best_model_f &lt;- regsubsets(Y~., data=df, nvmax=10, method=&#39;forward&#39;)
+summary_model_f &lt;- best_model_f %&gt;% summary
+
+# refer to C_p, BIC, and adjusted R^2
+min.cp &lt;- which.min(summary_model_f$cp)  
+min.cp
+min.bic &lt;- which.min(summary_model_f$bic) 
+min.bic
+min.adjr2 &lt;- which.max(summary_model_f$adjr2)
+min.adjr2
+
+coef(best_model, min.cp)
+coef(best_model, min.bic)
+coef(best_model, min.adjr2)
+
+# backward stepwise selection.
+best_model_b = regsubsets(Y~., data=df, nvmax=10, method=&#39;backward&#39;)
+summary_model_b &lt;- best_model_f %&gt;% summary
+
+#the best models according to C_p, BIC, and adjusted R^2
+min.cp &lt;- which.min(summary_model_b$cp)  
+min.cp
+min.bic &lt;- which.min(summary_model_b$bic) 
+min.bic
+min.adjr2 &lt;- which.max(summary_model_b$adjr2)
+min.adjr2
+
+coef(best_model, min.cp)
+coef(best_model, min.bic)
+coef(best_model, min.adjr2)</code></pre>
+<p>We found that both forward and backward method provided same results as part (c).</p>
+<ol start="5" style="list-style-type: lower-alpha">
+<li>Now fit a LASSO model with <code>glmnet</code> function from <code>glmnet</code> package to the simulated data, again using <span class="math inline">\((X,X^2,\cdots,X^{10})\)</span> as predictors. Use cross-validation to select the optimal value of <span class="math inline">\(\lambda\)</span>. Create plots of the cross-validation error as a function of <span class="math inline">\(\lambda\)</span>. Report the resulting coefficient estimates, and discuss the results obtained.</li>
+</ol>
+<pre class="r"><code># Lasso model
+lasso = glmnet(df[, -11]%&gt;%as.matrix, df[, 11], alpha=1)
+# cross-validation
+cv.out = cv.glmnet(df[, -11]%&gt;%as.matrix, df[, 11], alpha=1)
+# cross-validation error
+plot(cv.out)
+# the optimal value of lambda
+best_lam = cv.out$lambda.min
+# Coefficients from lasso model with best lambda.
+predict(lasso, s=best_lam, type=&quot;coefficients&quot;)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-1/index.en-us_files/fig24.png" /></p>
+<p>According the results, we see that estimated coefficients of b1~b3 from lasso model with best lambda are largely consistent with the true value of b1~b3. Nevertheless, lasso model included X^7 and X^9 by mistake, with small coefficients.</p>
+<ol start="6" style="list-style-type: lower-alpha">
+<li>Now generate a response vector <span class="math inline">\(Y\)</span> according to the model <span class="math display">\[Y = \beta_0 + \beta_7 X^7 + \epsilon,\]</span> where <span class="math inline">\(\beta_7 = 7\)</span>, and perform best subset selection and the LASSO. Discuss the results obtained.</li>
+</ol>
+<pre class="r"><code># generate y2
+b7 &lt;- 7
+Y2 &lt;- b0 + b7*X^7 + epsilon
+
+df &lt;- data.frame(X,X^2,X^3,X^4,X^5,X^6,X^7,X^8,X^9,X^10,Y2)
+
+# best subset selection
+best_model &lt;- regsubsets(Y2 ~ ., data=df, nvmax=10)
+summary_model &lt;- summary(best_model)
+
+# refer to C_p, BIC, and adjusted R^2
+min.cp &lt;- which.min(summary_model$cp)  
+min.bic &lt;- which.min(summary_model$bic) 
+min.adjr2 &lt;- which.max(summary_model$adjr2)
+
+# check results
+coef(best_model, min.cp)
+coef(best_model, min.bic)
+coef(best_model, min.adjr2)
+
+# LASSO model
+lasso = glmnet(df[, -11]%&gt;%as.matrix, df[, 11], alpha=1)
+# cross-validation
+cv.out = cv.glmnet(df[, -11]%&gt;%as.matrix, df[, 11], alpha=1)
+# cross-validation error
+plot(cv.out)
+# the optimal value of lambda
+best_lam = cv.out$lambda.min
+# Coefficients from lasso model with best lambda.
+predict(lasso, s=best_lam, type=&quot;coefficients&quot;)</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-1/index.en-us_files/fig25.png" /></p>
+<p>According to the results, we found that the best subset selection (referring to the BIC value) and Lasso regression provides the relatively more accurate estimates than that of best subset selection (referring to C_p and adjusted R^2).</p>
+<ol start="2" style="list-style-type: decimal">
+<li>(Prediction, [ISL] 6.9, <em>20 pt</em>) In this exercise, we will predict the number of applications received (<code>Apps</code>) using the other variables in the <code>College</code> data set from <code>ISLR</code> package.</li>
+</ol>
+<!-- -->
+<ol style="list-style-type: lower-alpha">
+<li>Randomly split the data set into equal sized training set and test set (1:1).</li>
+</ol>
+<pre class="r"><code>data(College)
+
+set.seed(199609)
+train_id &lt;- sample(dim(College)[1], dim(College)[1]/2)
+
+train_set &lt;- College[train_id, ]
+test_set &lt;- College[-train_id, ]</code></pre>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Fit a linear model using least squares on the training set, and report the test error obtained.</li>
+</ol>
+<pre class="r"><code># linear model
+modl &lt;- lm(Apps~., data = train_set)
+summary(modl)
+pred1 &lt;- predict(modl, newdata = test_set[,-2], type = &quot;response&quot;)
+
+# test error
+MAE(pred1, College$Apps[-train_id])
+MSE(pred1, College$Apps[-train_id])
+RMSE(pred1, College$Apps[-train_id])
+R2(pred1, College$Apps[-train_id], form = &quot;traditional&quot;)
+
+err1 &lt;- data.frame(MAE = MAE(pred1, College$Apps[-train_id]),
+                  MSE = MSE(pred1, College$Apps[-train_id]),
+                  RMSE = RMSE(pred1, College$Apps[-train_id]),
+                  R2 = R2(pred1, College$Apps[-train_id], form = &quot;traditional&quot;))</code></pre>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Fit a ridge regression model on the training set, with <span class="math inline">\(\lambda\)</span> chosen by 5-fold cross-validation. Report the test error obtained.</li>
+</ol>
+<pre class="r"><code># prepare data
+train_set &lt;- model.matrix(Apps~.-1, data=College[train_id, ])
+test_set &lt;- model.matrix(Apps~.-1, data=College[-train_id, ])
+
+# ridge regression with cross-validation
+modr_cv &lt;- cv.glmnet(train_set %&gt;% as.matrix,
+                     College$Apps[train_id] %&gt;% as.matrix, 
+                     nfolds = 5, alpha = 0)
+plot(modr_cv)
+lambda &lt;- modr_cv$lambda.min
+pred2 &lt;- predict(modr_cv, s = lambda, newx = test_set)
+summary(modr_cv)
+# test error
+MAE(pred2, College$Apps[-train_id])
+MSE(pred2, College$Apps[-train_id])
+RMSE(pred2, College$Apps[-train_id])
+R2(pred2, College$Apps[-train_id], form = &quot;traditional&quot;)
+
+err2 &lt;- data.frame(MAE = MAE(pred2, College$Apps[-train_id]),
+                  MSE = MSE(pred2, College$Apps[-train_id]),
+                  RMSE = RMSE(pred2, College$Apps[-train_id]),
+                  R2 = R2(pred2, College$Apps[-train_id], form = &quot;traditional&quot;))</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-1/index.en-us_files/fig26.png" /></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>Fit a LASSO model on the training set, with <span class="math inline">\(\lambda\)</span> chosen by 5-fold cross-validation. Report the test error obtained, along with the number of non-zero coefficient estimates.</li>
+</ol>
+<pre class="r"><code># LASSO regression with cross-validation
+modr_cv &lt;- cv.glmnet(train_set %&gt;% as.matrix,
+                     College$Apps[train_id] %&gt;% as.matrix, 
+                     nfolds = 5, alpha = 1)
+plot(modr_cv)
+lambda &lt;- modr_cv$lambda.min
+pred3 &lt;- predict(modr_cv, s = lambda, newx = test_set)
+
+# test error
+MAE(pred3, College$Apps[-train_id])
+MSE(pred3, College$Apps[-train_id])
+RMSE(pred3, College$Apps[-train_id])
+R2(pred3, College$Apps[-train_id], form = &quot;traditional&quot;)
+
+err3 &lt;- data.frame(MAE = MAE(pred3, College$Apps[-train_id]),
+                  MSE = MSE(pred3, College$Apps[-train_id]),
+                  RMSE = RMSE(pred3, College$Apps[-train_id]),
+                  R2 = R2(pred3, College$Apps[-train_id], form = &quot;traditional&quot;))
+
+# the number of non-zero coefficient estimates (intercept term included)
+coef &lt;- predict(modr_cv, s=best_lam, type=&quot;coefficients&quot;)
+coef[which(coef != 0)] %&gt;% length</code></pre>
+<p><img src="/post/2021-06-14-machine-learning-practice-1/index.en-us_files/fig27.png" /></p>
+<ol start="5" style="list-style-type: lower-alpha">
+<li>Comment on the results obtained. How accurately can we predict the number of college applications received? Is there much difference among the test errors resulting from these three approaches?</li>
+</ol>
+<pre class="r"><code>data.frame(Model = c(&quot;Linear&quot;, &quot;Ridge&quot;, &quot;Lasso&quot;),
+           rbind(err1, err2, err3) %&gt;% round(2)) </code></pre>
+<p>We used <code>MAE</code>, <code>MSE</code>, <code>RMSE</code> and <code>R-squared</code> to access the model test error.</p>
+<ul>
+<li>MAE (Mean absolute error) represents the difference between the original and predicted values extracted by averaged the absolute difference over the data set.</li>
+<li>MSE (Mean Squared Error) represents the difference between the original and predicted values extracted by squared the average difference over the data set.</li>
+<li>RMSE (Root Mean Squared Error) is the error rate by the square root of MSE.</li>
+<li>R-squared (Coefficient of determination) represents the coefficient of how well the values fit compared to the original values. The value from 0 to 1 interpreted as percentages. The higher the value is, the better the model is. <a href="https://www.datatechnotes.com/2019/02/regression-model-accuracy-mae-mse-rmse.html">source</a></li>
+</ul>
+<p>Generally speaking, all of models showed high R2 (<span class="math inline">\(\geq0.9\)</span>), indicating that the high accuracy of the predictions. According to four test errors, we found that Ridge regression provides the lowerst <code>MSE</code>, <code>RMSE</code> and the highest <code>R-squared</code>, which suggested that Ridge regression performed the best. Nevertheless, the test errors differences are very small.</p>

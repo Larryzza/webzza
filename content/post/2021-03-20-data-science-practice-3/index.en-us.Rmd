@@ -23,16 +23,7 @@ Below is an outline of steps.
 ### Q1.1 
 Connect to database `mimiciv`. We are going to use username `postgres` with password `postgres` to access the `mimiciv` database.
 ```{r, eval=FALSE}
-# Load configuration settings
-#host  <- '127.0.0.1'
-#port  <- '5432'
-user  <- ifelse(Sys.info()[["nodename"]] == "ucla-biostat-203b", 
-                'postgres', # on teaching server
-                'huazhou')  # on my MacBook
-password <- ifelse(Sys.info()[["nodename"]] == "ucla-biostat-203b",
-                   'postgres', # on teaching server
-                   'huazhou')  # on my MacBook   
-dbname <- 'mimiciv'
+# Load configuration settings first
 # Connect to the database using the configuration settings
 (con <- dbConnect(RPostgreSQL::PostgreSQL(), 
                   dbname = dbname, 

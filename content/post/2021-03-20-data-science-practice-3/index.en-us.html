@@ -23,16 +23,8 @@ comments: no
 <div id="q1.1" class="section level3">
 <h3>Q1.1</h3>
 <p>Connect to database <code>mimiciv</code>. We are going to use username <code>postgres</code> with password <code>postgres</code> to access the <code>mimiciv</code> database.</p>
-<pre class="r"><code># Load configuration settings
-#host  &lt;- &#39;127.0.0.1&#39;
-#port  &lt;- &#39;5432&#39;
-user  &lt;- ifelse(Sys.info()[[&quot;nodename&quot;]] == &quot;ucla-biostat-203b&quot;, 
-                &#39;postgres&#39;, # on teaching server
-                &#39;huazhou&#39;)  # on my MacBook
-password &lt;- ifelse(Sys.info()[[&quot;nodename&quot;]] == &quot;ucla-biostat-203b&quot;,
-                   &#39;postgres&#39;, # on teaching server
-                   &#39;huazhou&#39;)  # on my MacBook   
-dbname &lt;- &#39;mimiciv&#39;
+<pre class="r"><code># Load configuration settings first
+#
 # Connect to the database using the configuration settings
 (con &lt;- dbConnect(RPostgreSQL::PostgreSQL(), 
                   dbname = dbname, 

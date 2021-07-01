@@ -24,6 +24,7 @@ Below is an outline of steps.
 Connect to database `mimiciv`. We are going to use username `postgres` with password `postgres` to access the `mimiciv` database.
 ```{r, eval=FALSE}
 # Load configuration settings first
+#
 # Connect to the database using the configuration settings
 (con <- dbConnect(RPostgreSQL::PostgreSQL(), 
                   dbname = dbname, 

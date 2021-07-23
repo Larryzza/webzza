@@ -12,6 +12,8 @@ showActions: no
 
 1. **Zhuang Z**, Cao P, Zhao S, Han L, He D, Yang L. The shortage of hospital beds for COVID-19 and non-COVID-19 patients during the lockdown of Wuhan, China. *Annals of Translational Medicine*. 2021;9(3):200.
 
+1. Zhong T, **Zhuang Z**, Dong X, Wong KH, Wong WT, Wang J, et al. Predicting Antituberculosis Drug-Induced Liver Injury Using an Interpretable Machine Learning Method: Model Development and Validation Study. *JMIR Med Inform*. 2021;9(7):e29226.
+
 5. Cao P, Song Y, **Zhuang Z**, Ran J, Xu L, Geng Y, et al. Obesity and COVID-19 in Adult Patients With Diabetes. *Diabetes*. 2021:db200671.
 
 7. Musa SS, Zhao S, Hussaini N, **Zhuang Z**, Wu Y, Abdulhamid A, et al. Estimation of COVID-19 under-ascertainment in Kano, Nigeria during the early phase of the epidemics. *Alexandria Engineering Journal*. 2021.

@@ -18,6 +18,8 @@ showActions: no
 
 7. Musa SS, Zhao S, Hussaini N, **Zhuang Z**, Wu Y, Abdulhamid A, et al. Estimation of COVID-19 under-ascertainment in Kano, Nigeria during the early phase of the epidemics. *Alexandria Engineering Journal*. 2021.
 
+8. Wang J, Chen X, Guo Z, Zhao S, Huang Z, **Zhuang Z**, et al. Superspreading and heterogeneity in transmission of SARS, MERS, and COVID-19: a systematic review. *Computational and Structural Biotechnology Journal*. 2021.
+
 # 2020
 
 1. **Zhuang Z**, Zhao S, Lin Q, Cao P, Lou Y, Yang L, et al. Preliminary estimates of the reproduction number of the coronavirus disease (COVID-19) outbreak in Republic of Korea and Italy by 5 March 2020. *International Journal of Infectious Diseases*. 2020;95:308-10.

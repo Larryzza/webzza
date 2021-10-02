@@ -36,7 +36,7 @@ ______________
 
 #### SKILLS & INTERESTS:
 
-- Skills: R, Python, SAS, SPSS, C++, stata, LaTex
+- Skills: R, Python, Julia, SAS, SPSS, C++, stata, LaTex
 - Interests: Photography, Tennis, badminton
 
 
